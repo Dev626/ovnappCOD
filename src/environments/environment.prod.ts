@@ -5,9 +5,12 @@ export const environment = {
     protocol: "https",
     hostLocal : "cod.ovenfo.com",
     host : {
-      ovnMain : "cod.ovenfo.com/",
-      ovnADM  : "cod.ovenfo.com/",
-      ovnCOD  : "cod.ovenfo.com/",
+      // ovnMain : "cod.ovenfo.com/",
+      // ovnADM  : "cod.ovenfo.com/",
+      // ovnCOD  : "cod.ovenfo.com/",
+      ovnMain  : "sama.ademinsa.com/",
+      ovnADM  : "sama.ademinsa.com/",
+      ovnCOD  : "sama.ademinsa.com/",
     },
     hostType : 2,
     hostBefore : "", 
@@ -28,7 +31,7 @@ export const environment = {
     version : "1.0.0",
     systemId : 98,
     mainModuleFree : true,
-    default_languaje: "es"
+    default_languaje: "es",
     oauth_clientid : "API_APM_INLANDNET",
     oauth_secret : "33caa750333af31d49d39e9251ecb592"
 };
