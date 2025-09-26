@@ -2,12 +2,16 @@
 export const environment = {
     env: "local",
     production: false,
-    protocol: "http",
+    protocol: "https",
+    // protocol: "http",
     hostLocal : "yourapp.com",
     host : {
       ovnMain : "localhost:8443/",
       ovnADM  : "localhost:8444/",
       ovnCOD  : "localhost:8488/",
+      // ovnMain  : "app.codesociety.site/",
+      // ovnADM  : "app.codesociety.site/",
+      // ovnCOD  : "app.codesociety.site/",
     },
     hostType : 2,
     hostBefore : "", 

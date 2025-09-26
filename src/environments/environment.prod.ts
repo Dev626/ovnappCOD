@@ -3,7 +3,7 @@ export const environment = {
     env: "production",
     production: true,
     protocol: "https",
-    hostLocal : "cod.ovenfo.com",
+    hostLocal : "app.codesociety.site",
     host : {
       // ovnMain : "cod.ovenfo.com/",
       // ovnADM  : "cod.ovenfo.com/",
