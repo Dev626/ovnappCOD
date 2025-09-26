@@ -1,0 +1,65 @@
+# Nombre del flujo de trabajo de GitHub Actions
+name: Deploy Angular to Linux Server
+
+# Define cuándo se ejecutará este workflow
+on:
+  push:
+    branches:
+      # Se ejecuta solo en los pushes a la rama prod
+      - prod
+
+jobs:
+  # ------ JOB 1: Compilación de la aplicación ------
+  build:
+    name: Build Angular App
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Clona el repositorio
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # 2. Configura la versión de Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '16.13.1'
+
+      # 3. Instala las dependencias del proyecto
+      - name: Install dependencies
+        run: npm install --force
+
+      # 4. Compila la aplicación para producción
+      - name: Build Angular app
+        run: npm run build -- --configuration=production
+
+      # 5. Sube los archivos compilados como un artefacto
+      # Esto permite que el siguiente job pueda utilizarlos
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: angular-build-files # Nombre del artefacto
+          path: dist/ovnappMNG/ # Ruta de los archivos a subir
+
+  # ------ JOB 2: Despliegue en el servidor ------
+  deploy:
+    name: Deploy to Server
+    runs-on: ubuntu-latest
+    # La directiva 'needs' asegura que este job solo se ejecute si 'build' fue exitoso
+    needs: build
+    steps:
+      # 1. Descarga los archivos del artefacto que se subió en el job 'build'
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: angular-build-files # El mismo nombre del artefacto
+
+      # 2. Envía los archivos al servidor usando SCP
+      - name: Deploy to server with SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_SERVER_HOST }}
+          username: ${{ secrets.DEPLOY_SERVER_USER }}
+          key: ${{ secrets.DEPLOY_SERVER_SSH_KEY }}
+          # La fuente ahora son todos los archivos descargados del artefacto
+          source: "./*" 
+          target: "app"
