@@ -1,0 +1,7 @@
+<div class="container-fluid">
+	<div class="row">
+		<div class="col-6 col-sm-4 col-md-3" *ngFor="let item of cse.getTreeChild('/Be/cod') | ohFilterField: 'type' : 2">
+			<oh-link [link]="item.urlTree" [text]="item.name" [icon]="item.icon"></oh-link>
+		</div>
+	</div>
+</div>

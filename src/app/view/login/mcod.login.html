@@ -1,0 +1,65 @@
+<div id="ovnContent" class="ind-body-maxContent" *transloco="let tns;">
+	<div class="container">
+		<div class="row justify-content-center">
+			<div class="col-xl-10 col-lg-12 col-md-9">
+				<div class="card o-hidden border-0 shadow-lg my-5">
+					<div class="card-body p-0">
+						<div class="row">
+							<div class="col-lg-6 d-none d-lg-block bg-login-image"
+								style="padding: 3rem 0rem 3rem 3rem;">
+								<div style="text-align: center;">
+									<img *ngIf="cse.data.system && cse.data.system.logo_url" src="{{cse.data.system.logo_url}}"
+										style="width: 80%;" />
+								</div>
+							</div>
+							<div class="col-lg-6">
+								<div class="p-5">
+									<div class="text-center">
+										<h1 class="h4 text-gray-900 mb-4">
+											<div class="d-lg-none mb-4"><img *ngIf="cse.data.system && cse.data.system.logo_url"
+													src="{{cse.data.system.logo_url}}" style="max-width: 30%;" /></div>
+											{{tns('login.project_name')}}
+										</h1>
+									</div>
+									<form class="user">
+										<div class="form-group">
+											<input name="user" type="email" [(ngModel)]="user.user" class="form-control"
+												class="form-control form-control-user" placeholder="Usuario (correo)"
+												[ngClass]="{'is-invalid': user.user == ''}"
+												autocomplete="username email" requirñed>
+										</div>
+										<div class="form-group" style="position: relative;">
+											<input name="password" type="password" [(ngModel)]="user.password"
+												class="form-control form-control-user" placeholder="Contraseña"
+												[ngClass]="{'is-invalid': user.password == ''}"
+												(keyup.enter)="login()"
+												autocomplete="current-password" required>
+											<ng-template #tipContent let-greeting="greeting">
+												<div style="text-align: left">
+													Requisito(s) mínimo:
+													<ul>
+														<li>8 Caracteres</li>
+													</ul>
+												</div>
+											</ng-template>
+											<a href="#" style="position: absolute; top: 0.7rem;right: -1.5rem;"
+												placement="left" [ngbTooltip]="tipContent"><i
+													class="far fa-question-circle"></i></a>
+										</div>
+										<button type="button" (click)="login()"  style="cursor: pointer;"
+											class="btn btn-primary btn-user btn-block"
+											style="cursor: pointer;"
+											[disabled]="!user.user || !user.password || user.user == '' || user.password == ''">Ingresar</button>
+									</form>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="card-footer text-center" style="font-size: 0.7rem;">
+						Powered by <a href="https://ovenfo.com" target="_blank">Ovenfo</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

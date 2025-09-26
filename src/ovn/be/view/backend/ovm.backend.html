@@ -1,0 +1,10 @@
+<div id="wrapper" [ngClass]="{'wrapperHeight' : !cse.config.openMenu}">
+    <bes-menu #objMenu [openMenu]="cse.config.openMenu" (onSincronizar)="onSincronizar()" (onCerrarSession)="onCerrarSession()" class="noImpresion"></bes-menu>
+    <div id="content-wrapper" class="d-flex flex-column">
+        <div id="content">
+            <bes-nav #objNav [(openMenu)]="cse.config.openMenu" (onSincronizar)="onSincronizar()" (onCerrarSession)="onCerrarSession()" class="noImpresion"></bes-nav>
+            <router-outlet></router-outlet>
+            <div style="width: 100%; height: 2.2rem;"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+{
+    "id" : "/",
+    "start_url": "/",
+    "name": "CodeSociety",
+    "short_name": "CodeSociety",
+    "description": "CodeSociety",
+    "gcm_sender_id": "706486790340",
+    "icons": [],
+    "theme_color": "#ad5e47",
+    "background_color": "#a32c08",
+    "display": "standalone"
+}
