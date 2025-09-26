@@ -8,7 +8,7 @@ export const environment = {
       // ovnMain : "cod.ovenfo.com/",
       // ovnADM  : "cod.ovenfo.com/",
       // ovnCOD  : "cod.ovenfo.com/",
-      ovnMain  : "sama.ademinsa.com/",
+      ovnMain  : "app.codesociety.site/",
       ovnADM  : "sama.ademinsa.com/",
       ovnCOD  : "sama.ademinsa.com/",
     },

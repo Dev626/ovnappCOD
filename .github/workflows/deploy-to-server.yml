@@ -38,7 +38,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: angular-build-files # Nombre del artefacto
-          path: dist/ovnappMNG/ # Ruta de los archivos a subir
+          path: dist/ovnappCOD/ # Ruta de los archivos a subir
 
   # ------ JOB 2: Despliegue en el servidor ------
   deploy:
