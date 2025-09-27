@@ -4,6 +4,7 @@
     "scripts": {
       "ng": "ng",
       "start": "ng serve",
+      "start:https": "ng serve --ssl true --ssl-key %JPO_HOME%\\localhost+2-key.pem --ssl-cert %JPO_HOME%\\localhost+2.pem",
       "build": "ng build",
       "test": "ng test",
       "lint": "ng lint",
