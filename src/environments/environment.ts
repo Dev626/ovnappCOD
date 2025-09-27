@@ -4,7 +4,7 @@ export const environment = {
     production: false,
     // protocol: "https",
     protocol: "http",
-    hostLocal : "yourapp.com",
+    hostLocal : "localhost:4200",
     host : {
       ovnMain : "localhost:8443/",
       ovnADM  : "localhost:8444/",
