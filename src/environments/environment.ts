@@ -2,8 +2,8 @@
 export const environment = {
     env: "local",
     production: false,
-    protocol: "https",
-    // protocol: "http",
+    // protocol: "https",
+    protocol: "http",
     hostLocal : "yourapp.com",
     host : {
       ovnMain : "localhost:8443/",
