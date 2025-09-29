@@ -25,11 +25,7 @@
                                [(ngModel)]="searchTerm" (keyup)="filterDocuments()">
                     </div>
                 </div>
-                <div class="col-md-6 text-right">
-                    <small class="text-muted">
-                        Mostrando {{filteredDocuments?.length || 0}} de {{documents?.length || 0}} documentos
-                    </small>
-                </div>
+
             </div>
 
             <div class="table-responsive">
@@ -42,86 +38,45 @@
                             <th>Documento</th>
                             <th>Tipo</th>
                             <th>Archivo</th>
-                            <th>Fecha subida</th>
-                            <th>Tamaño</th>
+                            <th>Estado</th>
                             <th>Usuario registro</th>
+                            <th>Fecha subida</th>
+                            <th>Usuario de Modificacion</th>
+                            <th>Fecha modificación</th>
                             <th style="width: 120px;">Vista previa</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr *ngFor="let doc of filteredDocuments; trackBy: trackByDocumentId">
-                           <td class="text-center">
-                                <button class="btn btn-sm btn-outline-primary"
-                                        title="Editar documento">
-                                    <i class="fas fa-edit fa-xs"></i>
-                                </button>
+                        <tr *ngFor="let item of ldocuments">
+                          <td>
+                                <a class="text-size-10 text-success" [routerLink]="['edit', item.document_id]"><i
+                                        title="¡Editar!" class="fas fas fa-edit" ></i></a>
+                            </td>
+                          <td>{{item.title}}</td>
+                          <td>{{item.document_type}}</td>
+                          <td>{{item.file_path}}</td>
+                          <td>{{item.comment}}</td>
+                          <td>{{item.status}}</td>
+                          <td>
+                                {{item.created_by |  ohDate: cse.config.formatShortDateTime}}
                             </td>
                             <td>
-                                <div class="document-title-cell">
-                                    <strong class="text-dark">{{doc.title}}</strong>
-                                    <br>
-                                    <small class="text-muted">ID: {{doc.id}}</small>
-                                </div>
+                                {{item.created_at |  ohDate: cse.config.formatShortDateTime}}
                             </td>
                             <td>
-                                <span class="badge"
-                                      [ngClass]="{
-                                        'badge-primary': doc.type === 'carta',
-                                        'badge-success': doc.type === 'contrato',
-                                        'badge-info': doc.type === 'acta',
-                                        'badge-warning': doc.type === 'informe',
-                                        'badge-secondary': doc.type === 'otro'
-                                      }">
-                                    {{doc.type | titlecase}}
-                                </span>
+                                {{item.updated_by |  ohDate: cse.config.formatShortDateTime}}
                             </td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <i class="mr-2"
-                                       [ngClass]="{
-                                         'fas fa-file-pdf text-danger': doc.fileExtension.toLowerCase() === 'pdf',
-                                         'fas fa-file-word text-primary': doc.fileExtension.toLowerCase() === 'doc' || doc.fileExtension.toLowerCase() === 'docx',
-                                         'fas fa-file-excel text-success': doc.fileExtension.toLowerCase() === 'xls' || doc.fileExtension.toLowerCase() === 'xlsx',
-                                         'fas fa-file-image text-info': ['jpg', 'jpeg', 'png', 'gif'].includes(doc.fileExtension.toLowerCase()),
-                                         'fas fa-file text-secondary': !['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif'].includes(doc.fileExtension.toLowerCase())
-                                       }"></i>
-                                    <div>
-                                        <small class="font-weight-bold">{{doc.fileExtension.toUpperCase()}}</small>
-                                        <br>
-                                        <small class="text-muted">{{doc.fileName}}</small>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                <small class="text-muted">
-                                    {{doc.uploadDate | date:'dd/MM/yyyy'}}
-                                    <br>
-                                    {{doc.uploadDate | date:'HH:mm'}}
-                                </small>
-                            </td>
-                            <td>
-                                <small class="text-muted">{{doc.fileSize}}</small>
-                            </td>
-
-                            <td>
-                                <small class="text-muted">{{doc.createdBy}}</small>
-                            </td>
-
                             <td class="text-center">
                                 <div class="btn-group" role="group">
                                     <!-- Botón de vista previa solo para PDFs -->
-                                    <button class="btn btn-sm"
-                                            [ngClass]="doc.fileExtension.toLowerCase() === 'pdf' ? 'btn-success' : 'btn-secondary'"
-                                            [disabled]="doc.fileExtension.toLowerCase() !== 'pdf'"
-                                            [title]="doc.fileExtension.toLowerCase() === 'pdf' ? 'Previsualizar PDF' : 'Vista previa no disponible'"
-                                            (click)="previewPDF(doc)">
+                                    <button class="btn btn-sm">
                                         <i class="fas fa-eye fa-xs"></i>
                                     </button>
 
                                     <!-- Botón de descarga -->
                                     <button class="btn btn-sm btn-info"
                                             title="Descargar archivo"
-                                            (click)="downloadDocument(doc)">
+                                            >
                                         <i class="fas fa-download fa-xs"></i>
                                     </button>
 
@@ -134,30 +89,13 @@
                             </td>
                         </tr>
 
-                        <!-- Mensaje cuando no hay documentos -->
-                        <tr *ngIf="!filteredDocuments || filteredDocuments.length === 0">
-                            <td colspan="8" class="text-center py-4">
-                                <div class="empty-state">
-                                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
-                                    <p class="text-muted mb-0">
-                                        <span *ngIf="!searchTerm">No hay documentos registrados</span>
-                                        <span *ngIf="searchTerm">No se encontraron documentos que coincidan con "{{searchTerm}}"</span>
-                                    </p>
-                                </div>
-                            </td>
-                        </tr>
+
                     </tbody>
                 </table>
             </div>
 
 
-            <div class="row mt-3" *ngIf="filteredDocuments && filteredDocuments.length > 0">
-                <div class="col-sm-12 col-md-7">
-                    <div class="dataTables_paginate paging_simple_numbers">
 
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -271,19 +209,12 @@
 
             <div class="form-group">
                 <label class="form-label font-weight-bold">Tipo de Documento <span class="text-danger">*</span></label>
-                <select name="inp_document_type" class="form-control"
-                        [(ngModel)]="newDocument.type" required>
-                    <option value="">Seleccione un tipo</option>
-                    <option value="carta">Carta</option>
-                    <option value="acta">Acta</option>
-                    <option value="contrato">Contrato</option>
-                    <option value="informe">Informe</option>
-                    <option value="oficio">Oficio</option>
-                    <option value="memo">Memorándum</option>
-                    <option value="certificado">Certificado</option>
-                    <option value="otro">Otro</option>
-                </select>
+                 <oh-predictive-text [searchBy]="['descripcion']" [return]="'catalogo_id'" [(value)]="newDocument.type" [data]="ccs.data.catalogo.mng_cat_type_file"
+                            [form]="frmNewDocument" [name]="'inp_type'" [required]="true" [openOnClick]="true"
+                            placeholder="Seleccione tipo documento..."></oh-predictive-text>
             </div>
+
+
 
             <div class="form-group">
                 <label class="form-label font-weight-bold">Archivo <span class="text-danger">*</span></label>

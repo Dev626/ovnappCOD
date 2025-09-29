@@ -13,7 +13,7 @@ export class CODBase {
         this.storage = new ohStorage()
         this.mapLoadObj = new ohLoadSubModule(cse, this.ccs, "OVN_COD_DATA")
         this.precarga = this.mapLoadObj.mapLoad([
-            //{ id: 1, nombre: "element" }
+            { id: 62471, nombre: 'mng_cat_type_file'}
         ], this.instance())
 
     }
