@@ -7,6 +7,7 @@ export const environment = {
     host : {
       // ovnMain : "cod.ovenfo.com/",
       // ovnADM  : "cod.ovenfo.com/",
+      // ovnMNG  : "cod.ovenfo.com/",
       // ovnCOD  : "cod.ovenfo.com/",
       ovnMain  : "app.codesociety.site/",
       ovnADM  : "app.codesociety.site/",
