@@ -12,6 +12,7 @@ export const environment = {
       ovnCOD  : "localhost:8488/",
       // ovnMain  : "app.codesociety.site/",
       // ovnADM  : "app.codesociety.site/",
+      // ovnMNG  : "app.codesociety.site/",
       // ovnCOD  : "app.codesociety.site/",
     },
     hostType : 2,
