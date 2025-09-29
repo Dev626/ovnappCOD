@@ -1,1 +1,390 @@
-Hola Mundo
+<div class="container-fluid">
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-file-alt mr-2"></i>Documentos
+            </h6>
+            <div class="btn-header-card">
+                <button class="btn btn-outline-secondary btn-sm mr-1" (click)="openFilterModal()">
+                    <i class="fas fa-filter fa-sm"></i> Filtrar
+                </button>
+                <button class="btn btn-primary mr-1" (click)="openNewDocumentModal()">
+                    <i class="fas fa-plus fa-sm"></i> Nuevo Documento
+                </button>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                        </div>
+                        <input type="text" class="form-control" placeholder="Buscar documentos..."
+                               [(ngModel)]="searchTerm" (keyup)="filterDocuments()">
+                    </div>
+                </div>
+                <div class="col-md-6 text-right">
+                    <small class="text-muted">
+                        Mostrando {{filteredDocuments?.length || 0}} de {{documents?.length || 0}} documentos
+                    </small>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered dataTable" cellspacing="0">
+                    <thead>
+                        <tr role="row">
+                            <th scope="col" style="width:1rem">
+                                <i title="Acciones" class="text-muted text-size-10 fas fa-cogs"></i>
+                            </th>
+                            <th>Documento</th>
+                            <th>Tipo</th>
+                            <th>Archivo</th>
+                            <th>Fecha subida</th>
+                            <th>Tamaño</th>
+                            <th>Usuario registro</th>
+                            <th style="width: 120px;">Vista previa</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let doc of filteredDocuments; trackBy: trackByDocumentId">
+                           <td class="text-center">
+                                <button class="btn btn-sm btn-outline-primary"
+                                        title="Editar documento"
+                                        (click)="editDocument(doc.id)">
+                                    <i class="fas fa-edit fa-xs"></i>
+                                </button>
+                            </td>
+                            <td>
+                                <div class="document-title-cell">
+                                    <strong class="text-dark">{{doc.title}}</strong>
+                                    <br>
+                                    <small class="text-muted">ID: {{doc.id}}</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge"
+                                      [ngClass]="{
+                                        'badge-primary': doc.type === 'carta',
+                                        'badge-success': doc.type === 'contrato',
+                                        'badge-info': doc.type === 'acta',
+                                        'badge-warning': doc.type === 'informe',
+                                        'badge-secondary': doc.type === 'otro'
+                                      }">
+                                    {{doc.type | titlecase}}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <i class="mr-2"
+                                       [ngClass]="{
+                                         'fas fa-file-pdf text-danger': doc.fileExtension.toLowerCase() === 'pdf',
+                                         'fas fa-file-word text-primary': doc.fileExtension.toLowerCase() === 'doc' || doc.fileExtension.toLowerCase() === 'docx',
+                                         'fas fa-file-excel text-success': doc.fileExtension.toLowerCase() === 'xls' || doc.fileExtension.toLowerCase() === 'xlsx',
+                                         'fas fa-file-image text-info': ['jpg', 'jpeg', 'png', 'gif'].includes(doc.fileExtension.toLowerCase()),
+                                         'fas fa-file text-secondary': !['pdf', 'doc', 'docx', 'xls', 'xlsx', 'jpg', 'jpeg', 'png', 'gif'].includes(doc.fileExtension.toLowerCase())
+                                       }"></i>
+                                    <div>
+                                        <small class="font-weight-bold">{{doc.fileExtension.toUpperCase()}}</small>
+                                        <br>
+                                        <small class="text-muted">{{doc.fileName}}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <small class="text-muted">
+                                    {{doc.uploadDate | date:'dd/MM/yyyy'}}
+                                    <br>
+                                    {{doc.uploadDate | date:'HH:mm'}}
+                                </small>
+                            </td>
+                            <td>
+                                <small class="text-muted">{{doc.fileSize}}</small>
+                            </td>
+
+                            <td>
+                                <small class="text-muted">{{doc.createdBy}}</small>
+                            </td>
+
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <!-- Botón de vista previa solo para PDFs -->
+                                    <button class="btn btn-sm"
+                                            [ngClass]="doc.fileExtension.toLowerCase() === 'pdf' ? 'btn-success' : 'btn-secondary'"
+                                            [disabled]="doc.fileExtension.toLowerCase() !== 'pdf'"
+                                            [title]="doc.fileExtension.toLowerCase() === 'pdf' ? 'Previsualizar PDF' : 'Vista previa no disponible'"
+                                            (click)="previewPDF(doc)">
+                                        <i class="fas fa-eye fa-xs"></i>
+                                    </button>
+
+                                    <!-- Botón de descarga -->
+                                    <button class="btn btn-sm btn-info"
+                                            title="Descargar archivo"
+                                            (click)="downloadDocument(doc)">
+                                        <i class="fas fa-download fa-xs"></i>
+                                    </button>
+
+                                    <!-- Botón de eliminar -->
+                                    <button class="btn btn-sm btn-danger"
+                                            title="Eliminar documento"
+                                            (click)="deleteDocument(doc)">
+                                        <i class="fas fa-trash fa-xs"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Mensaje cuando no hay documentos -->
+                        <tr *ngIf="!filteredDocuments || filteredDocuments.length === 0">
+                            <td colspan="8" class="text-center py-4">
+                                <div class="empty-state">
+                                    <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">
+                                        <span *ngIf="!searchTerm">No hay documentos registrados</span>
+                                        <span *ngIf="searchTerm">No se encontraron documentos que coincidan con "{{searchTerm}}"</span>
+                                    </p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+
+            <div class="row mt-3" *ngIf="filteredDocuments && filteredDocuments.length > 0">
+                <div class="col-sm-12 col-md-7">
+                    <div class="dataTables_paginate paging_simple_numbers">
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Filtros -->
+<ng-template #modalDocumentFilter let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <span class="h5 m-0">
+            <i class="fa fa-filter mr-1"></i>Filtrar Documentos
+        </span>
+        <a href="#" class="close text-dark" aria-label="Close" (click)="$event.preventDefault(); d('Cross click')">
+            <i class="fas fa-times fa-xs"></i>
+        </a>
+    </div>
+    <div class="modal-body">
+        <form #frmFiltroDocument="ngForm" class="form-enable">
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Título</label>
+                <div class="col-sm-9">
+                    <input name="inp_title" class="form-control" type="text"
+                           [(ngModel)]="filterData.title"
+                           placeholder="Buscar por título..."
+                           (keyup.enter)="c('doFilter')">
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Tipo</label>
+                <div class="col-sm-9">
+                    <select name="inp_type" class="form-control" [(ngModel)]="filterData.type">
+                        <option value="">Todos los tipos</option>
+                        <option value="carta">Carta</option>
+                        <option value="acta">Acta</option>
+                        <option value="contrato">Contrato</option>
+                        <option value="informe">Informe</option>
+                        <option value="oficio">Oficio</option>
+                        <option value="memo">Memorándum</option>
+                        <option value="certificado">Certificado</option>
+                        <option value="otro">Otro</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Extensión</label>
+                <div class="col-sm-9">
+                    <div class="btn-group btn-group-toggle" ngbRadioGroup name="inp_extension">
+                        <label ngbButtonLabel class="btn-outline-secondary btn-sm">
+                            <input ngbButton type="radio" [value]="null" [(ngModel)]="filterData.extension"> Todos
+                        </label>
+                        <label ngbButtonLabel class="btn-outline-danger btn-sm">
+                            <input ngbButton type="radio" value="pdf" [(ngModel)]="filterData.extension"> PDF
+                        </label>
+                        <label ngbButtonLabel class="btn-outline-primary btn-sm">
+                            <input ngbButton type="radio" value="doc" [(ngModel)]="filterData.extension"> DOC
+                        </label>
+                        <label ngbButtonLabel class="btn-outline-success btn-sm">
+                            <input ngbButton type="radio" value="xls" [(ngModel)]="filterData.extension"> XLS
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label class="col-sm-3 col-form-label">Fecha</label>
+                <div class="col-sm-4">
+                    <input name="inp_date_from" class="form-control" type="date"
+                           [(ngModel)]="filterData.dateFrom"
+                           placeholder="Desde">
+                </div>
+                <div class="col-sm-1 text-center align-self-center">
+                    <small class="text-muted">hasta</small>
+                </div>
+                <div class="col-sm-4">
+                    <input name="inp_date_to" class="form-control" type="date"
+                           [(ngModel)]="filterData.dateTo"
+                           placeholder="Hasta">
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-secondary" (click)="clearFilters(); c('clearFilter')">
+            <i class="fa fa-times mr-1"></i>Limpiar
+        </button>
+        <button type="submit" class="btn btn-outline-primary" (click)="c('doFilter')">
+            <i aria-hidden="true" class="fa fa-filter mr-1"></i>Aplicar Filtros
+        </button>
+    </div>
+</ng-template>
+
+<!-- Modal para Nuevo Documento -->
+<ng-template #modalNewDocument let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <span class="h5 m-0">
+            <i class="fas fa-file-plus mr-1"></i>Nuevo Documento
+        </span>
+        <a href="#" class="close text-dark" aria-label="Close" (click)="$event.preventDefault(); d('Cross click')">
+            <i class="fas fa-times fa-xs"></i>
+        </a>
+    </div>
+    <div class="modal-body">
+        <form #frmNewDocument="ngForm" class="form-enable">
+            <div class="form-group">
+                <label class="form-label font-weight-bold">Título del Documento <span class="text-danger">*</span></label>
+                <input name="inp_document_title" class="form-control" type="text"
+                       [(ngModel)]="newDocument.title"
+                       placeholder="Ingrese el título del documento"
+                       required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-weight-bold">Tipo de Documento <span class="text-danger">*</span></label>
+                <select name="inp_document_type" class="form-control"
+                        [(ngModel)]="newDocument.type" required>
+                    <option value="">Seleccione un tipo</option>
+                    <option value="carta">Carta</option>
+                    <option value="acta">Acta</option>
+                    <option value="contrato">Contrato</option>
+                    <option value="informe">Informe</option>
+                    <option value="oficio">Oficio</option>
+                    <option value="memo">Memorándum</option>
+                    <option value="certificado">Certificado</option>
+                    <option value="otro">Otro</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label font-weight-bold">Archivo <span class="text-danger">*</span></label>
+                <div class="custom-file">
+                    <input type="file" class="custom-file-input" id="customFile"
+                           (change)="onFileSelected($event)"
+                           accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
+                    <label class="custom-file-label" for="customFile">
+                        {{selectedFileName || 'Seleccionar archivo...'}}
+                    </label>
+                </div>
+                <small class="form-text text-muted">
+                    Formatos admitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF (Máx: 10MB)
+                </small>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="d('cancel')">
+            <i class="fa fa-times mr-1"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary"
+                [disabled]="!frmNewDocument.form.valid || !selectedFile"
+                (click)="saveDocument(); c('save')">
+            <i class="fas fa-save mr-1"></i>Guardar Documento
+        </button>
+    </div>
+</ng-template>
+
+<!-- Modal para Vista Previa PDF -->
+<ng-template #modalPDFPreview let-c="close" let-d="dismiss">
+    <div class="modal-header">
+        <span class="h5 m-0">
+            <i class="fas fa-file-pdf mr-1 text-danger"></i>{{previewDocument?.title}}
+        </span>
+        <a href="#" class="close text-dark" aria-label="Close" (click)="$event.preventDefault(); d('Cross click')">
+            <i class="fas fa-times fa-xs"></i>
+        </a>
+    </div>
+    <div class="modal-body p-0">
+        <iframe [src]="pdfPreviewUrl"
+                style="width: 100%; height: 500px; border: none;"
+                *ngIf="pdfPreviewUrl">
+        </iframe>
+        <div class="text-center py-4" *ngIf="!pdfPreviewUrl">
+            <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+            <p class="text-muted mt-2">Cargando vista previa...</p>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-outline-primary" (click)="downloadDocument(previewDocument)">
+            <i class="fas fa-download mr-1"></i>Descargar
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="c('close')">
+            <i class="fa fa-times mr-1"></i>Cerrar
+        </button>
+    </div>
+</ng-template>
+
+<!--  estilos-->
+<style>
+.document-title-cell {
+    min-width: 200px;
+}
+
+.empty-state {
+    padding: 2rem 0;
+}
+
+.btn-header-card {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.badge {
+    font-size: 0.75em;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.btn-group .btn {
+    border-radius: 0.25rem;
+    margin-right: 2px;
+}
+
+.input-group-text {
+    background-color: #f8f9fc;
+    border-color: #d1d3e2;
+}
+
+@media (max-width: 768px) {
+    .btn-header-card {
+        flex-direction: column;
+    }
+
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+</style>
