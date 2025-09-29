@@ -26,8 +26,10 @@ export class MNGDocumentServiceJPO {
         created_at ?: string,
         updated_by ?: number,
         updated_at ?: string
-    }, call ? : { (resp: pMngdocumentEdit) }, handlerError ?: { (resp: JpoError) }){
+    }, files : any, loading : any, call ? : { (resp: pMngdocumentEdit) }, handlerError ?: { (resp: JpoError) }){
         this.jpo.get("mngdocumentEdit",{
+            files : files,
+            loading : loading,
             fields : fields,
             handlerError : handlerError,
             response : (rs) => {
@@ -93,8 +95,10 @@ export class MNGDocumentServiceJPO {
         created_at ?: string,
         updated_by ?: number,
         updated_at ?: string
-    }, call ? : { (resp: pMngdocumentRegister) }, handlerError ?: { (resp: JpoError) }){
+    }, files : any, loading : any, call ? : { (resp: pMngdocumentRegister) }, handlerError ?: { (resp: JpoError) }){
         this.jpo.get("mngdocumentRegister",{
+            files : files,
+            loading : loading,
             fields : fields,
             handlerError : handlerError,
             response : (rs) => {
