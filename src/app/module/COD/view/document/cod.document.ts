@@ -5,6 +5,7 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { CoreService, OHService } from '@ovenfo/framework';
 import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
+import { MNGDocumentServiceJPO, pMngdocumentList } from '../../service/mng.mNGDocumentService';
 
 
 export interface DocumentModel {
@@ -39,6 +40,8 @@ export interface NewDocument {
 	templateUrl: './cod.document.html'
 })
 export class Document extends CODBase implements OnInit, AfterViewInit, OnDestroy {
+
+  private mNGDocumentService : MNGDocumentServiceJPO
 
 	// ViewChild para los modales
 	@ViewChild('modalDocumentFilter') modalDocumentFilter!: TemplateRef<any>;
@@ -78,9 +81,11 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		private modalService: NgbModal
 	) {
 		super(ohService, cse, ccs);
+    this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
 	}
 
 	ngOnInit() {
+    this.mngdocumentList();
 		this.loadDocuments();
 	}
 
@@ -92,6 +97,12 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 		this.closeAllModals();
 	}
+
+  mngdocumentList(){
+    this.mNGDocumentService.mngdocumentList({}, (resp : pMngdocumentList) => {
+      console.log('resp:', resp)
+    })
+  }
 
 
 	loadDocuments(): void {
