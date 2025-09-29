@@ -2,7 +2,7 @@ import { Component, AfterViewInit, OnInit, OnDestroy, ViewChild, TemplateRef } f
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
-import { CoreService, OHService } from '@ovenfo/framework';
+import { CoreService, ohLoadSubModule, OHService } from '@ovenfo/framework';
 import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
 import { MNGDocumentServiceJPO, pMngdocumentList } from '../../service/mng.mNGDocumentService';
@@ -41,7 +41,10 @@ export interface NewDocument {
 })
 export class Document extends CODBase implements OnInit, AfterViewInit, OnDestroy {
 
+  /* servicio */
   private mNGDocumentService : MNGDocumentServiceJPO
+  /* catalogo */
+  catalogo: any = {}
 
 	// ViewChild para los modales
 	@ViewChild('modalDocumentFilter') modalDocumentFilter!: TemplateRef<any>;
@@ -81,11 +84,24 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		private modalService: NgbModal
 	) {
 		super(ohService, cse, ccs);
+    
+    /* servicio */
     this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
+
+    /* catalogo */
+    new ohLoadSubModule(cse).mapOnlyCatalogs([
+      { id: 41857, nombre: 'person_document_type' },
+      { id: 41854, nombre: 'person_contact_type' }
+    ])
+    .then((it) => {
+      this.catalogo = it;
+      console.log('this.catalogo:', this.catalogo)
+    })
 	}
 
 	ngOnInit() {
-    this.mngdocumentList();
+    /* servicio */
+    this.mngdocumentList({});
 		this.loadDocuments();
 	}
 
@@ -98,7 +114,23 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		this.closeAllModals();
 	}
 
-  mngdocumentList(){
+  /* servicio */
+  mngdocumentList({
+    // document_id : 0, // Optional
+    // title : "", // Optional
+    // document_type : 0, // Optional
+    // file_path : "", // Optional
+    // comment : "", // Optional
+    // status : 0, // Optional
+    // created_by : 0, // Optional
+    // created_at_from : "", // Optional
+    // created_at_to : "", // Optional
+    // updated_by : 0, // Optional
+    // updated_at_from : "", // Optional
+    // updated_at_to : "", // Optional
+    // pf_page : 0, // Optional
+    // pf_size : 0 // Optional
+  }){
     this.mNGDocumentService.mngdocumentList({}, (resp : pMngdocumentList) => {
       console.log('resp:', resp)
     })
