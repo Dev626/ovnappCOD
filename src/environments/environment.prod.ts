@@ -11,6 +11,7 @@ export const environment = {
       ovnMain  : "app.codesociety.site/",
       ovnADM  : "app.codesociety.site/",
       ovnCOD  : "app.codesociety.site/",
+      ovnMNG  : "sama.ademinsa.com/",
     },
     hostType : 2,
     hostBefore : "", 
