@@ -52,8 +52,7 @@
                         <tr *ngFor="let doc of filteredDocuments; trackBy: trackByDocumentId">
                            <td class="text-center">
                                 <button class="btn btn-sm btn-outline-primary"
-                                        title="Editar documento"
-                                        (click)="editDocument(doc.id)">
+                                        title="Editar documento">
                                     <i class="fas fa-edit fa-xs"></i>
                                 </button>
                             </td>
@@ -128,8 +127,7 @@
 
                                     <!-- Botón de eliminar -->
                                     <button class="btn btn-sm btn-danger"
-                                            title="Eliminar documento"
-                                            (click)="deleteDocument(doc)">
+                                            title="Eliminar documento">
                                         <i class="fas fa-trash fa-xs"></i>
                                     </button>
                                 </div>
