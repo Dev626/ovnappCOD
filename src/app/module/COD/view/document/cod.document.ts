@@ -21,9 +21,9 @@ export interface DocumentModel {
 	createdBy: string;
 	filePath?: string;
 	fileUrl?: string;
-  user_registration_id?: number;
-  user_registration_name?: string;
-  user_registration_lastname?: string;
+	user_registration_id?: number;
+	user_registration_name?: string;
+	user_registration_lastname?: string;
 }
 
 
@@ -60,7 +60,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	documents: DocumentModel[] = [];
 
-  ldocuments: any = []
+	ldocuments: any = []
 	filteredDocuments: DocumentModel[] = [];
 	searchTerm: string = '';
 
@@ -75,6 +75,9 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	previewDocument: DocumentModel | null = null;
 	pdfPreviewUrl: SafeResourceUrl | null = null;
+	isLoadingPdf: boolean = false;
+	// Variable para guardar la URL del blob y poder revocarla
+	private currentBlobUrl: string | null = null;
 
 
 	private filterModalRef: NgbModalRef | undefined;
@@ -87,15 +90,16 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		public override ccs: CODCoreService,
 		private sanitizer: DomSanitizer,
 		private modalService: NgbModal,
-    private fileService: MNGDocumentFileService
+		private fileService: MNGDocumentFileService
 	) {
 		super(ohService, cse, ccs);
 
 		/* servicio */
 		this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
-    this.mngdocumentList();
+		this.mNGDocumentFileService = fileService;
+		this.mngdocumentList();
 
-    this.pagin = {
+		this.pagin = {
 			page: 1,
 			total: 0,
 			size_rows: 10,
@@ -104,16 +108,13 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		new ohLoadSubModule(cse).mapOnlyCatalogs([
 			{ id: 62471, nombre: 'mng_cat_type_file' }
 		]).then((it) => {
-				this.catalogo = it;
-				console.log('this.catalogo:', this.catalogo)
-    })
-    // this.openPdf(6);
-    // this.saveFile(6);
+			this.catalogo = it;
+			console.log('this.catalogo:', this.catalogo)
+		})
 	}
 
 	ngOnInit() {
 		/* Cargar documentos desde el servicio */
-
 	}
 
 	ngAfterViewInit() {
@@ -122,64 +123,65 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	ngOnDestroy() {
 		this.closeAllModals();
+		// Limpiar recursos de blob si existen
+		this.cleanupPdfPreview();
 	}
 
-  openPdf(document_id) {
-    this.fileService.getFileDocument(document_id, false).subscribe(response => {
-      const blob = response.body as Blob;
-      const fileURL = URL.createObjectURL(blob);
-      window.open(fileURL); // previsualiza si es PDF
-    });
-  }
-  
-  saveFile(document_id) {
-    this.fileService.getFileDocument(document_id, true).subscribe(response => {
-      const blob = response.body as Blob;
-  
-      // 👇 recuperar filename desde los headers
-      let filename = 'documento.pdf';
-      const contentDisposition = response.headers.get('Content-Disposition');
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) {
-          filename = match[1];
-        }
-      }
-  
-      const a = document.createElement('a');
-      const fileURL = URL.createObjectURL(blob);
-      a.href = fileURL;
-      a.download = filename; // 👈 ahora usa el nombre real
-      a.click();
-      URL.revokeObjectURL(fileURL);
-    });
-  }
+	openPdf(document_id) {
+		this.fileService.getFileDocument(document_id, false).subscribe(response => {
+			const blob = response.body as Blob;
+			const fileURL = URL.createObjectURL(blob);
+			window.open(fileURL); // previsualiza si es PDF
+		});
+	}
+
+	saveFile(document_id) {
+		this.fileService.getFileDocument(document_id, true).subscribe(response => {
+			const blob = response.body as Blob;
+
+			// 👇 recuperar filename desde los headers
+			let filename = 'documento.pdf';
+			const contentDisposition = response.headers.get('Content-Disposition');
+			if (contentDisposition) {
+				const match = contentDisposition.match(/filename="?([^"]+)"?/);
+				if (match && match[1]) {
+					filename = match[1];
+				}
+			}
+
+			const a = document.createElement('a');
+			const fileURL = URL.createObjectURL(blob);
+			a.href = fileURL;
+			a.download = filename; // 👈 ahora usa el nombre real
+			a.click();
+			URL.revokeObjectURL(fileURL);
+		});
+	}
 
 	/* servicio - Listar documentos */
-	mngdocumentList(){
-    this.mNGDocumentService.mngdocumentList({
-        // document_id : 6, // Optional
-        // title : "", // Optional
-        // document_type : 0, // Optional
-        // file_name : "", // Optional
-        // file_path : "", // Optional
-        // comment : "", // Optional
-        // status : 0, // Optional
-        // created_by : 0, // Optional
-        // created_at_from : "", // Optional
-        // created_at_to : "", // Optional
-        // updated_by : 0, // Optional
-        // updated_at_from : "", // Optional
-        // updated_at_to : "", // Optional
-        // pf_page : 0, // Optional
-        // pf_size : 0 // Optional
-    }, (resp : pMngdocumentList) => {
-      this.pagin.total = resp.response
-      this.ldocuments =resp.documents
-      console.log('resp:', resp)
-
-      })
-  }
+	mngdocumentList() {
+		this.mNGDocumentService.mngdocumentList({
+			// document_id : 6, // Optional
+			// title : "", // Optional
+			// document_type : 0, // Optional
+			// file_name : "", // Optional
+			// file_path : "", // Optional
+			// comment : "", // Optional
+			// status : 0, // Optional
+			// created_by : 0, // Optional
+			// created_at_from : "", // Optional
+			// created_at_to : "", // Optional
+			// updated_by : 0, // Optional
+			// updated_at_from : "", // Optional
+			// updated_at_to : "", // Optional
+			// pf_page : 0, // Optional
+			// pf_size : 0 // Optional
+		}, (resp: pMngdocumentList) => {
+			this.pagin.total = resp.response
+			this.ldocuments = resp.documents
+			console.log('resp:', resp)
+		})
+	}
 
 
 	loadDocuments(): void {
@@ -333,7 +335,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		console.log('Guardando documento...', fields);
 
 		// Llamar al servicio de registro
-    console.log('files:', files)
+		console.log('files:', files)
 		this.mNGDocumentService.mngdocumentRegister(
 			fields,
 			files,
@@ -373,8 +375,12 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		);
 	}
 
-
+	/**
+	 * Previsualiza un documento PDF en un modal
+	 * Solo permite PDFs y descarga el archivo del servidor usando el servicio
+	 */
 	previewPDF(document: DocumentModel): void {
+		// Validar que sea un PDF
 		if (document.fileExtension.toLowerCase() !== 'pdf') {
 			console.warn('Solo se pueden previsualizar archivos PDF');
 			alert('Solo se pueden previsualizar archivos PDF');
@@ -382,45 +388,167 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		}
 
 		this.previewDocument = document;
+		this.isLoadingPdf = true;
 
-		// Construir URL del documento
-		const pdfUrl = document.filePath || `/api/documents/${document.id}/preview`;
-		this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(pdfUrl);
-
+		// Abrir el modal inmediatamente (mostrará loading)
 		this.pdfPreviewModalRef = this.modalService.open(this.modalPDFPreview, {
 			size: 'xl',
-			backdrop: 'static'
+			backdrop: 'static',
+			keyboard: true
 		});
 
-		this.pdfPreviewModalRef.result.then(() => {
-			this.pdfPreviewUrl = null;
-			this.previewDocument = null;
-		}).catch(() => {
-			this.pdfPreviewUrl = null;
-			this.previewDocument = null;
+		// Configurar limpieza al cerrar el modal
+		this.pdfPreviewModalRef.result.then(
+			() => this.cleanupPdfPreview(),
+			() => this.cleanupPdfPreview()
+		);
+
+		// Llamar al servicio para obtener el PDF
+		this.mNGDocumentFileService.getFileDocument(document.id, false).subscribe({
+			next: (response) => {
+				const blob = response.body;
+
+				// Validar que el blob exista
+				if (!blob) {
+					console.error('No se recibió el archivo del servidor');
+					alert('Error: No se pudo cargar el documento');
+					this.closePdfPreview();
+					return;
+				}
+
+				// Validar que sea un PDF válido
+				if (blob.type !== 'application/pdf') {
+					console.error('El archivo no es un PDF válido. Tipo:', blob.type);
+					alert('El archivo descargado no es un PDF válido');
+					this.closePdfPreview();
+					return;
+				}
+
+				// Crear URL del blob
+				this.currentBlobUrl = URL.createObjectURL(blob);
+				this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl);
+				this.isLoadingPdf = false;
+
+				console.log('PDF cargado correctamente:', document.fileName);
+			},
+			error: (error) => {
+				console.error('Error al cargar el PDF:', error);
+				this.isLoadingPdf = false;
+
+				// Mensaje de error más específico
+				let errorMessage = 'Error al cargar el documento. ';
+				if (error.status === 404) {
+					errorMessage += 'El archivo no fue encontrado.';
+				} else if (error.status === 403) {
+					errorMessage += 'No tiene permisos para acceder a este archivo.';
+				} else if (error.status === 0) {
+					errorMessage += 'No se pudo conectar con el servidor.';
+				} else {
+					errorMessage += 'Por favor, intente nuevamente.';
+				}
+
+				alert(errorMessage);
+				this.closePdfPreview();
+			}
+		});
+	}
+
+	/**
+	 * Cierra el modal de previsualización de PDF
+	 */
+	closePdfPreview(): void {
+		if (this.pdfPreviewModalRef) {
+			this.pdfPreviewModalRef.close();
+		}
+	}
+
+	/**
+	 * Limpia los recursos del PDF (blob URL) para evitar memory leaks
+	 */
+	private cleanupPdfPreview(): void {
+		// Liberar la URL del blob si existe
+		if (this.currentBlobUrl) {
+			URL.revokeObjectURL(this.currentBlobUrl);
+			this.currentBlobUrl = null;
+		}
+
+		// Limpiar variables
+		this.pdfPreviewUrl = null;
+		this.previewDocument = null;
+		this.isLoadingPdf = false;
+	}
+
+	downloadDocument(doc: DocumentModel): void {
+		console.log('Iniciando descarga del documento:', doc.fileName);
+
+		// Usar el servicio para descargar
+		this.mNGDocumentFileService.getFileDocument(doc.id, true).subscribe({
+			next: (response) => {
+				const blob = response.body;
+
+				if (!blob) {
+					console.error('No se recibió el archivo del servidor');
+					alert('Error al descargar el documento');
+					return;
+				}
+
+				// Obtener el nombre del archivo desde los headers
+				let filename = doc.fileName;
+				const contentDisposition = response.headers.get('Content-Disposition');
+				if (contentDisposition) {
+					const match = contentDisposition.match(/filename="?([^"]+)"?/);
+					if (match && match[1]) {
+						filename = match[1];
+					}
+				}
+
+				// Crear enlace temporal para descargar
+				const a = window.document.createElement('a');
+				const fileURL = URL.createObjectURL(blob);
+				a.href = fileURL;
+				a.download = filename;
+				window.document.body.appendChild(a);
+				a.click();
+				window.document.body.removeChild(a);
+
+				// Liberar el blob URL después de un momento
+				setTimeout(() => URL.revokeObjectURL(fileURL), 100);
+
+				console.log('Descarga iniciada:', filename);
+			},
+			error: (error) => {
+				console.error('Error al descargar el documento:', error);
+				alert('Error al descargar el documento. Por favor, intente nuevamente.');
+			}
 		});
 	}
 
 
-	downloadDocument(document: DocumentModel): void {
-		// Construir URL de descarga
-		const downloadUrl = document.filePath || `/api/documents/${document.id}/download`;
-
-		// Crear elemento temporal para descargar
-		const link = window.document.createElement('a');
-		link.href = downloadUrl;
-		link.download = document.fileName;
-		window.document.body.appendChild(link);
-		link.click();
-		window.document.body.removeChild(link);
-
-		console.log('Iniciando descarga del documento:', document.fileName);
+	/**
+	 * Mapea un item de la lista a DocumentModel para usar en preview/download
+	 */
+	mapToDocumentModel(item: any): DocumentModel {
+		return {
+			id: item.document_id,
+			title: item.title || '',
+			type: item.document_type?.toString() || '',
+			typeDesc: item.document_type_desc || '',
+			fileName: item.file_name || '',
+			fileExtension: this.getFileExtension(item.file_name),
+			fileSize: item.file_size || '0',
+			uploadDate: item.created_at ? new Date(item.created_at) : new Date(),
+			createdBy: item.created_by_desc || '',
+			filePath: item.file_path || '',
+			user_registration_id: item.created_by,
+			user_registration_name: item.user_registration_name || '',
+			user_registration_lastname: item.user_registration_lastname || ''
+		};
 	}
 
-
-	private getFileExtension(filename: string): string {
+	getFileExtension(filename: string): string {
 		if (!filename) return '';
-		return filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
+		const ext = filename.slice((filename.lastIndexOf('.') - 1 >>> 0) + 2);
+		return ext.toLowerCase();
 	}
 
 	private getFileNameFromPath(filepath: string): string {

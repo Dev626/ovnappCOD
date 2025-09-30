@@ -1,5 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 import { environment } from 'src/environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -15,7 +16,7 @@ export class MNGDocumentFileService {
    * @param id id del documento
    * @param download true = siempre descarga / false = si es PDF previsualiza
    */
-  getFileDocument(document_id: number, download: boolean = false) {
+  getFileDocument(document_id: number, download: boolean = false) :Observable<HttpResponse<Blob>> { //agregue Observable<HttpResponse<Blob>>
     const url = `${this.baseUrl}ovnMNG/module/mng/MNGDocumentServiceImp/mngdocument/${document_id}/file?download=${download}`;
     return this.http.get(url, {
       responseType: 'blob',

@@ -5,9 +5,9 @@
                 <i class="fas fa-file-alt mr-2"></i>Documentos
             </h6>
             <div class="btn-header-card">
-                <button class="btn btn-outline-secondary btn-sm mr-1" (click)="openFilterModal()">
+                <!-- <button class="btn btn-outline-secondary btn-sm mr-1" (click)="openFilterModal()">
                     <i class="fas fa-filter fa-sm"></i> Filtrar
-                </button>
+                </button> -->
                 <button class="btn btn-primary mr-1" (click)="openNewDocumentModal()">
                     <i class="fas fa-plus fa-sm"></i> Nuevo Documento
                 </button>
@@ -15,7 +15,7 @@
         </div>
 
         <div class="card-body">
-            <div class="row mb-3">
+            <!-- <div class="row mb-3">
                 <div class="col-md-6">
                     <div class="input-group">
                         <div class="input-group-prepend">
@@ -26,7 +26,7 @@
                     </div>
                 </div>
 
-            </div>
+            </div> -->
 
             <div class="table-responsive">
                 <table class="table table-bordered dataTable" cellspacing="0">
@@ -67,9 +67,12 @@
                           <td class="text-center">
                               <div class="btn-group" role="group">
                                   <!-- Botón de vista previa solo para PDFs -->
-                                  <button class="btn btn-sm">
-                                      <i class="fas fa-eye fa-xs"></i>
-                                  </button>
+                                  <button class="btn btn-sm btn-primary"
+                        (click)="previewPDF(mapToDocumentModel(item))"
+                        [disabled]="getFileExtension(item.file_name) !== 'pdf'"
+                        [title]="getFileExtension(item.file_name) === 'pdf' ? 'Previsualizar PDF' : 'Solo PDFs'">
+                    <i class="fas fa-eye fa-xs"></i>
+                </button>
 
                                   <!-- Botón de descarga -->
                                   <button class="btn btn-sm btn-info"
@@ -238,33 +241,44 @@
 </ng-template>
 
 <!-- Modal para Vista Previa PDF -->
-<ng-template #modalPDFPreview let-c="close" let-d="dismiss">
-    <div class="modal-header">
-        <span class="h5 m-0">
-            <i class="fas fa-file-pdf mr-1 text-danger"></i>{{previewDocument?.title}}
-        </span>
-        <a href="#" class="close text-dark" aria-label="Close" (click)="$event.preventDefault(); d('Cross click')">
-            <i class="fas fa-times fa-xs"></i>
-        </a>
+<ng-template #modalPDFPreview let-modal>
+  <div class="modal-header">
+    <h4 class="modal-title">
+      Previsualización: {{ previewDocument?.fileName || 'Documento' }}
+    </h4>
+    <button
+      type="button"
+      class="btn-close"
+      aria-label="Cerrar"
+      (click)="closePdfPreview()">
+    </button>
+  </div>
+
+  <div class="modal-body p-0" style="height: 80vh;">
+    <iframe
+      *ngIf="pdfPreviewUrl"
+      [src]="pdfPreviewUrl"
+      width="100%"
+      height="100%"
+      style="border: none;"
+      title="Vista previa del PDF">
+    </iframe>
+
+    <div *ngIf="!pdfPreviewUrl" class="d-flex justify-content-center align-items-center h-100">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Cargando...</span>
+      </div>
     </div>
-    <div class="modal-body p-0">
-        <iframe [src]="pdfPreviewUrl"
-                style="width: 100%; height: 500px; border: none;"
-                *ngIf="pdfPreviewUrl">
-        </iframe>
-        <div class="text-center py-4" *ngIf="!pdfPreviewUrl">
-            <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
-            <p class="text-muted mt-2">Cargando vista previa...</p>
-        </div>
-    </div>
-    <div class="modal-footer">
-        <button type="button" class="btn btn-outline-primary" (click)="downloadDocument(previewDocument)">
-            <i class="fas fa-download mr-1"></i>Descargar
-        </button>
-        <button type="button" class="btn btn-secondary" (click)="c('close')">
-            <i class="fa fa-times mr-1"></i>Cerrar
-        </button>
-    </div>
+  </div>
+
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      (click)="closePdfPreview()">
+      Cerrar
+    </button>
+  </div>
 </ng-template>
 
 <!--  estilos-->
