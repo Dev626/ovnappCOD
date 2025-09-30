@@ -5,7 +5,8 @@ import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 import { CoreService, ohLoadSubModule, OHService } from '@ovenfo/framework';
 import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
-import { MNGDocumentServiceJPO, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
+import { MNGDocumentServiceJPO, pMngdocumentGet, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
+import { MNGDocumentFileService } from '../../service/mng.mNGDocumentFileService';
 
 
 export interface DocumentModel {
@@ -47,6 +48,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	/* servicio */
 	private mNGDocumentService: MNGDocumentServiceJPO
+	private mNGDocumentFileService: MNGDocumentFileService
 	/* catalogo */
 	catalogo: any = {}
 	pagin: any = {}
@@ -84,7 +86,8 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		public override cse: CoreService,
 		public override ccs: CODCoreService,
 		private sanitizer: DomSanitizer,
-		private modalService: NgbModal
+		private modalService: NgbModal,
+    private fileService: MNGDocumentFileService
 	) {
 		super(ohService, cse, ccs);
 
@@ -99,13 +102,13 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		}
 		/* catalogo */
 		new ohLoadSubModule(cse).mapOnlyCatalogs([
-			{ id: 62471, nombre: 'mng_cat_type_file' },
-			{ id: 62473, nombre: 'mng_status_document' }
-		])
-			.then((it) => {
+			{ id: 62471, nombre: 'mng_cat_type_file' }
+		]).then((it) => {
 				this.catalogo = it;
 				console.log('this.catalogo:', this.catalogo)
-			})
+    })
+    // this.openPdf(6);
+    // this.saveFile(6);
 	}
 
 	ngOnInit() {
@@ -121,12 +124,44 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		this.closeAllModals();
 	}
 
+  openPdf(document_id) {
+    this.fileService.getFileDocument(document_id, false).subscribe(response => {
+      const blob = response.body as Blob;
+      const fileURL = URL.createObjectURL(blob);
+      window.open(fileURL); // previsualiza si es PDF
+    });
+  }
+  
+  saveFile(document_id) {
+    this.fileService.getFileDocument(document_id, true).subscribe(response => {
+      const blob = response.body as Blob;
+  
+      // 👇 recuperar filename desde los headers
+      let filename = 'documento.pdf';
+      const contentDisposition = response.headers.get('Content-Disposition');
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) {
+          filename = match[1];
+        }
+      }
+  
+      const a = document.createElement('a');
+      const fileURL = URL.createObjectURL(blob);
+      a.href = fileURL;
+      a.download = filename; // 👈 ahora usa el nombre real
+      a.click();
+      URL.revokeObjectURL(fileURL);
+    });
+  }
+
 	/* servicio - Listar documentos */
 	mngdocumentList(){
     this.mNGDocumentService.mngdocumentList({
-        // document_id : 0, // Optional
+        // document_id : 6, // Optional
         // title : "", // Optional
         // document_type : 0, // Optional
+        // file_name : "", // Optional
         // file_path : "", // Optional
         // comment : "", // Optional
         // status : 0, // Optional
@@ -298,6 +333,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		console.log('Guardando documento...', fields);
 
 		// Llamar al servicio de registro
+    console.log('files:', files)
 		this.mNGDocumentService.mngdocumentRegister(
 			fields,
 			files,
