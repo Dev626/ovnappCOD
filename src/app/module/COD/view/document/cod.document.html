@@ -54,12 +54,13 @@
                           <td>{{item.title}}</td>
                           <td>{{item.document_type_desc}}</td>
                           <td>{{item.file_name}}</td>
-                          <td>{{item.comment}}</td>
-                          <td>{{item.status}}</td>
+                          <!-- <td>{{item.comment}}</td> -->
+                          <td>{{item.status_desc}}</td>
                           <td>{{item.created_by_desc}}</td>
                           <td>
                               {{item.created_at |  ohDate: cse.config.formatShortDateTime}}
                           </td>
+                          <td>{{item.updated_by_desc}}</td>
                           <td>
                               {{item.updated_at |  ohDate: cse.config.formatShortDateTime}}
                           </td>
