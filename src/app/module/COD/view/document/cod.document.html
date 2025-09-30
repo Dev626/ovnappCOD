@@ -8,7 +8,7 @@
                 <!-- <button class="btn btn-outline-secondary btn-sm mr-1" (click)="openFilterModal()">
                     <i class="fas fa-filter fa-sm"></i> Filtrar
                 </button> -->
-                <button class="btn btn-primary mr-1" (click)="openNewDocumentModal()">
+                <button  class="btn btn-primary mr-1" (click)="openNewDocumentModal()">
                     <i class="fas fa-plus fa-sm"></i> Nuevo Documento
                 </button>
             </div>
@@ -49,13 +49,26 @@
                     <tbody>
                         <tr *ngFor="let item of ldocuments">
                           <td>
-                            <a class="text-size-10 text-success" [routerLink]="['edit', item.document_id]"><i title="¡Editar!" class="fas fas fa-edit" ></i></a>
+                            <a class="text-size-10 text-success" ><i title="¡Editar!" class="fas fas fa-edit" ></i></a>
                           </td>
                           <td>{{item.title}}</td>
                           <td>{{item.document_type_desc}}</td>
                           <td>{{item.file_name}}</td>
                           <!-- <td>{{item.comment}}</td> -->
-                          <td>{{item.status_desc}}</td>
+                          <td>
+    <span [ngClass]="{
+            'badge-success': item.status === 0,
+            'badge-warning': item.status === 1,
+            'badge-danger': item.status === -1
+          }"
+          class="badge"
+          [class.cursor-pointer]="item.status !== -1"
+          [class.cursor-not-allowed]="item.status === -1"
+
+          [title]="item.status === -1 ? 'Estado final - No se puede modificar' : 'Click para cambiar estado'">
+        {{item.status_desc}}
+    </span>
+</td>
                           <td>{{item.created_by_desc}}</td>
                           <td>
                               {{item.created_at |  ohDate: cse.config.formatShortDateTime}}
@@ -187,7 +200,8 @@
 <ng-template #modalNewDocument let-c="close" let-d="dismiss">
     <div class="modal-header">
         <span class="h5 m-0">
-            <i class="fas fa-file-plus mr-1"></i>Nuevo Documento
+            <i [class]="newDocument.document_id ? 'fas fa-edit mr-1' : 'fas fa-file-plus mr-1'"></i>
+            {{ newDocument.document_id ? 'Editar Documento' : 'Nuevo Documento' }}
         </span>
         <a href="#" class="close text-dark" aria-label="Close" (click)="$event.preventDefault(); d('Cross click')">
             <i class="fas fa-times fa-xs"></i>
@@ -205,25 +219,34 @@
 
             <div class="form-group">
                 <label class="form-label font-weight-bold">Tipo de Documento <span class="text-danger">*</span></label>
-                 <oh-predictive-text [searchBy]="['descripcion']" [return]="'catalogo_id'" [(value)]="newDocument.type" [data]="ccs.data.catalogo.mng_cat_type_file"
+                <oh-predictive-text [searchBy]="['descripcion']" [return]="'catalogo_id'" [(value)]="newDocument.type" [data]="ccs.data.catalogo.mng_cat_type_file"
                             [form]="frmNewDocument" [name]="'inp_type'" [required]="true" [openOnClick]="true"
                             placeholder="Seleccione tipo documento..."></oh-predictive-text>
             </div>
 
-
-
             <div class="form-group">
-                <label class="form-label font-weight-bold">Archivo <span class="text-danger">*</span></label>
+                <label class="form-label font-weight-bold">
+                    Archivo
+                    <span class="text-danger" *ngIf="!newDocument.document_id">*</span>
+                </label>
+
+                <!-- Mostrar archivo actual si es edición -->
+                <div *ngIf="newDocument.document_id && selectedFileName" class="alert alert-info mb-2">
+                    <i class="fas fa-file mr-1"></i>
+                    <strong>Archivo actual:</strong> {{ selectedFileName }}
+                </div>
+
                 <div class="custom-file">
                     <input type="file" class="custom-file-input" id="customFile"
                            (change)="onFileSelected($event)"
                            accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif">
                     <label class="custom-file-label" for="customFile">
-                        {{selectedFileName || 'Seleccionar archivo...'}}
+                        {{ selectedFile ? selectedFile.name : (newDocument.document_id ? 'Cambiar archivo (opcional)' : 'Seleccionar archivo...') }}
                     </label>
                 </div>
                 <small class="form-text text-muted">
-                    Formatos admitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF (Máx: 10MB)
+                    <span *ngIf="!newDocument.document_id">Formatos admitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF (Máx: 10MB)</span>
+                    <span *ngIf="newDocument.document_id">Seleccione un archivo solo si desea reemplazar el actual. Formatos admitidos: PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, GIF (Máx: 10MB)</span>
                 </small>
             </div>
         </form>
@@ -233,9 +256,10 @@
             <i class="fa fa-times mr-1"></i>Cancelar
         </button>
         <button type="submit" class="btn btn-primary"
-                [disabled]="!frmNewDocument.form.valid || !selectedFile"
-                (click)="saveDocument(); c('save')">
-            <i class="fas fa-save mr-1"></i>Guardar Documento
+                [disabled]="!frmNewDocument.form.valid || (!selectedFile && !newDocument.document_id)"
+                (click)="newDocument.document_id ? updateDocument() : saveDocument(); c(newDocument.document_id ? 'update' : 'save')">
+            <i [class]="newDocument.document_id ? 'fas fa-check mr-1' : 'fas fa-save mr-1'"></i>
+            {{ newDocument.document_id ? 'Actualizar Documento' : 'Guardar Documento' }}
         </button>
     </div>
 </ng-template>
@@ -281,6 +305,8 @@
   </div>
 </ng-template>
 
+
+
 <!--  estilos-->
 <style>
 .document-title-cell {
@@ -322,5 +348,12 @@
     .table-responsive {
         font-size: 0.875rem;
     }
+}
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-pointer:hover {
+    opacity: 0.8;
 }
 </style>
