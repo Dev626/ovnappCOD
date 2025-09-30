@@ -90,9 +90,9 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 		/* servicio */
 		this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
-this.mngdocumentList();
+    this.mngdocumentList();
 
-this.pagin = {
+    this.pagin = {
 			page: 1,
 			total: 0,
 			size_rows: 10,
@@ -100,7 +100,7 @@ this.pagin = {
 		/* catalogo */
 		new ohLoadSubModule(cse).mapOnlyCatalogs([
 			{ id: 62471, nombre: 'mng_cat_type_file' },
-			{ id: 41854, nombre: 'person_contact_type' }
+			{ id: 62473, nombre: 'mng_status_document' }
 		])
 			.then((it) => {
 				this.catalogo = it;

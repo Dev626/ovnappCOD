@@ -3,7 +3,7 @@ import { OHService } from "@ovenfo/framework";
 
 export class pMngdocumentEdit {resp_new_id : number; resp_result : number; resp_message : string};
 export interface mngdocumentList_response {total ?: number};
-export interface mngdocumentList_documents {document_id ?: number, title ?: string, document_type ?: number, document_type_Desc ?: string, file_path ?: string, comment ?: string, status ?: number, created_by ?: number, created_at ?: Date, updated_by ?: number, updated_at ?: Date};
+export interface mngdocumentList_documents {document_id ?: number, title ?: string, document_type ?: number, document_type_desc ?: string, file_path ?: string, comment ?: string, status ?: number, status_desc ?: string, created_by ?: number, created_at ?: Date, created_by_desc ?: string, updated_by ?: number, updated_at ?: Date, updated_by_desc ?: string};
 export class pMngdocumentList {response : mngdocumentList_response; documents : mngdocumentList_documents[]};
 export class pMngdocumentRegister {resp_new_id : number; resp_result : number; resp_message : string};
 
@@ -19,6 +19,7 @@ export class MNGDocumentServiceJPO {
         document_id ?: number,
         title ?: string,
         document_type ?: number,
+        file_name ?: string,
         file_path ?: string,
         comment ?: string,
         status ?: number,
@@ -51,6 +52,7 @@ export class MNGDocumentServiceJPO {
         document_id ?: number,
         title ?: string,
         document_type ?: number,
+        file_name ?: string,
         file_path ?: string,
         comment ?: string,
         status ?: number,
@@ -75,7 +77,7 @@ export class MNGDocumentServiceJPO {
                         if(rs[1]){
                             out.documents = [];
                             for(var i = 0; i < rs[1].length; i++){
-                                out.documents.push({document_id : rs[1][i][0], title : rs[1][i][1], document_type : rs[1][i][2], document_type_Desc : rs[1][i][3], file_path : rs[1][i][4], comment : rs[1][i][5], status : rs[1][i][6], created_by : rs[1][i][7], created_at : (rs[1][i][8])?this.ohService.getOH().getUtil().dateStringtoDate(rs[1][i][8]):null, updated_by : rs[1][i][9], updated_at : (rs[1][i][10])?this.ohService.getOH().getUtil().dateStringtoDate(rs[1][i][10]):null});
+                                out.documents.push({document_id : rs[1][i][0], title : rs[1][i][1], document_type : rs[1][i][2], document_type_desc : rs[1][i][3], file_path : rs[1][i][4], comment : rs[1][i][5], status : rs[1][i][6], status_desc : rs[1][i][7], created_by : rs[1][i][8], created_at : (rs[1][i][9])?this.ohService.getOH().getUtil().dateStringtoDate(rs[1][i][9]):null, created_by_desc : rs[1][i][10], updated_by : rs[1][i][11], updated_at : (rs[1][i][12])?this.ohService.getOH().getUtil().dateStringtoDate(rs[1][i][12]):null, updated_by_desc : rs[1][i][13]});
                             }
                         }
                     call(out);
@@ -88,6 +90,7 @@ export class MNGDocumentServiceJPO {
     mngdocumentRegister(fields : {
         title ?: string,
         document_type ?: number,
+        file_name ?: string,
         file_path ?: string,
         comment ?: string,
         status ?: number,
