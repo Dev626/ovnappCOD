@@ -641,53 +641,7 @@ private formatDateToDDMMYYYY(date: Date): string {
 		this.isLoadingPdf = false;
 	}
 
-	downloadDocument(doc: DocumentModel): void {
-		console.log('Iniciando descarga del documento:', doc.fileName);
-
-		// Usar el servicio para descargar
-		this.mNGDocumentFileService.getFileDocument(doc.id, true).subscribe({
-			next: (response) => {
-				const blob = response.body;
-
-				if (!blob) {
-					console.error('No se recibió el archivo del servidor');
-					alert('Error al descargar el documento');
-					return;
-				}
-
-				// Obtener el nombre del archivo desde los headers
-				let filename = doc.fileName;
-				const contentDisposition = response.headers.get('Content-Disposition');
-				if (contentDisposition) {
-					const match = contentDisposition.match(/filename="?([^"]+)"?/);
-					if (match && match[1]) {
-						filename = match[1];
-					}
-				}
-
-				// Crear enlace temporal para descargar
-				const a = window.document.createElement('a');
-				const fileURL = URL.createObjectURL(blob);
-				a.href = fileURL;
-				a.download = filename;
-				window.document.body.appendChild(a);
-				a.click();
-				window.document.body.removeChild(a);
-
-				// Liberar el blob URL después de un momento
-				setTimeout(() => URL.revokeObjectURL(fileURL), 100);
-
-				console.log('Descarga iniciada:', filename);
-			},
-			error: (error) => {
-				console.error('Error al descargar el documento:', error);
-				alert('Error al descargar el documento. Por favor, intente nuevamente.');
-			}
-		});
-	}
-
-
-	/**
+		/**
 	 * Mapea un item de la lista a DocumentModel para usar en preview/download
 	 */
 	mapToDocumentModel(item: any): DocumentModel {
