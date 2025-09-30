@@ -7,6 +7,7 @@ import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
 import { MNGDocumentServiceJPO, pMngdocumentGet, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
 import { MNGDocumentFileService } from '../../service/mng.mNGDocumentFileService';
+import { Console } from 'console';
 
 
 export interface DocumentModel {
@@ -67,7 +68,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	filterData: DocumentFilter = {};
 
-
+document_id: number
 	newDocument: any = {}
 	selectedFile: File | null = null;
 	selectedFileName: string = '';
@@ -80,9 +81,9 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 	private currentBlobUrl: string | null = null;
 
 
-	private filterModalRef: NgbModalRef | undefined;
-	private newDocumentModalRef: NgbModalRef | undefined;
-	private pdfPreviewModalRef: NgbModalRef | undefined;
+filterModalRef: NgbModalRef | undefined;
+newDocumentModalRef: NgbModalRef | undefined;
+pdfPreviewModalRef: NgbModalRef | undefined;
 
 	constructor(
 		private ohService: OHService,
@@ -98,6 +99,13 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
 		this.mNGDocumentFileService = fileService;
 		this.mngdocumentList();
+
+
+// console.log('Tiene rol?', this.cse.tieneRol([this.ccs.config.rol_kudo.approver]));
+// console.log('Roles del usuario:', this.cse.data.user.data.roles);
+// console.log('Rol buscado:', this.ccs.config.rol_kudo.submitter);
+// console.log(cse.tieneRol(['cod_doc_approver']))
+//console.log(cse.data.user.data.userid)
 
 		this.pagin = {
 			page: 1,
@@ -127,19 +135,14 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		this.cleanupPdfPreview();
 	}
 
-	openPdf(document_id) {
-		this.fileService.getFileDocument(document_id, false).subscribe(response => {
-			const blob = response.body as Blob;
-			const fileURL = URL.createObjectURL(blob);
-			window.open(fileURL); // previsualiza si es PDF
-		});
-	}
+
+
 
 	saveFile(document_id) {
 		this.fileService.getFileDocument(document_id, true).subscribe(response => {
 			const blob = response.body as Blob;
 
-			// 👇 recuperar filename desde los headers
+			// recuperar filename desde los headers
 			let filename = 'documento.pdf';
 			const contentDisposition = response.headers.get('Content-Disposition');
 			if (contentDisposition) {
@@ -152,7 +155,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 			const a = document.createElement('a');
 			const fileURL = URL.createObjectURL(blob);
 			a.href = fileURL;
-			a.download = filename; // 👈 ahora usa el nombre real
+			a.download = filename; // ahora usa el nombre real
 			a.click();
 			URL.revokeObjectURL(fileURL);
 		});
@@ -160,28 +163,188 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	/* servicio - Listar documentos */
 	mngdocumentList() {
-		this.mNGDocumentService.mngdocumentList({
-			// document_id : 6, // Optional
-			// title : "", // Optional
-			// document_type : 0, // Optional
-			// file_name : "", // Optional
-			// file_path : "", // Optional
-			// comment : "", // Optional
-			// status : 0, // Optional
-			// created_by : 0, // Optional
-			// created_at_from : "", // Optional
-			// created_at_to : "", // Optional
-			// updated_by : 0, // Optional
-			// updated_at_from : "", // Optional
-			// updated_at_to : "", // Optional
-			// pf_page : 0, // Optional
-			// pf_size : 0 // Optional
-		}, (resp: pMngdocumentList) => {
-			this.pagin.total = resp.response
-			this.ldocuments = resp.documents
-			console.log('resp:', resp)
-		})
-	}
+    // Determinar si es approver o submitter
+    const isApprover = this.cse.tieneRol([this.ccs.config.rol_kudo.approver]);
+    const isSubmitter = this.cse.tieneRol([this.ccs.config.rol_kudo.submitter]);
+
+    // Crear el objeto de parámetros base
+    let params: any = {
+        // pf_page : 0, // Optional
+        // pf_size : 0 // Optional
+    };
+
+    // Si es SUBMITTER (o tiene ambos roles), filtrar por su userid
+    if (isSubmitter) {
+        params.created_by = this.cse.data.user.data.userid;
+        console.log('Filtrando como SUBMITTER - UserID:', params.created_by);
+    }
+
+    // Si es APPROVER solo (sin submitter), no enviar created_by para traer todos
+    if (isApprover && !isSubmitter) {
+        console.log('Cargando todos los documentos (APPROVER)');
+        // No agregar created_by para traer todos los registros
+    }
+
+    // Si no tiene ningún rol válido, igual filtrar por su userid para no mostrar nada
+    if (!isApprover && !isSubmitter) {
+        params.created_by = -1; // ID inexistente para no traer nada
+        console.log('Usuario sin rol válido');
+    }
+
+    // Llamar al servicio con los parámetros
+    this.mNGDocumentService.mngdocumentList(params, (resp: pMngdocumentList) => {
+        this.pagin.total = resp.response;
+        this.ldocuments = resp.documents;
+        console.log('Documentos cargados:', this.ldocuments.length);
+        console.log('Respuesta completa:', resp);
+    });
+}
+
+
+
+
+   /**
+ * Obtiene los datos completos de un documento por su ID
+ */
+mngdocumentGet(documentId: number): void {
+    this.mNGDocumentService.mngdocumentGet({
+        document_id: documentId
+    }, (resp: pMngdocumentGet) => {
+        console.log('Respuesta completa:', resp);
+        console.log('Propiedades:', Object.keys(resp));
+
+        // Aquí verás qué propiedades tiene realmente
+    })
+}
+
+/**
+ * Abre el modal de edición y carga los datos del documento
+ */
+openEditDocumentModal(item: any): void {
+    // Primero obtener los datos completos del documento
+    this.mngdocumentGet(item.document_id);
+}
+
+/**
+ * Carga los datos del documento en el formulario de edición
+ */
+private loadDocumentForEdit(document: any): void {
+    // Cargar los datos en la variable de edición
+    this.newDocument = {
+        document_id: document.document_id,
+        title: document.title,
+        type: document.document_type?.toString(),
+        comment: document.comment,
+        file_name: document.file_name,
+        file_path: document.file_path,
+        status: document.status,
+        created_by: document.created_by,
+        created_at: document.created_at
+    };
+
+    this.selectedFileName = document.file_name || '';
+
+    // Abrir el modal de edición
+    this.newDocumentModalRef = this.modalService.open(this.modalNewDocument, {
+        size: 'lg',
+        backdrop: 'static'
+    });
+
+    this.newDocumentModalRef.result.then((result: string) => {
+        if (result === 'update') {
+            // El guardado se maneja en updateDocument()
+        }
+    }).catch(() => {
+        this.resetNewDocumentForm();
+    });
+}
+
+/**
+ * Actualiza un documento existente
+ */
+updateDocument(): void {
+    if (!this.newDocument.title || !this.newDocument.type) {
+        alert('Por favor complete todos los campos obligatorios');
+        return;
+    }
+
+    // Formatear fecha actual
+    const now = new Date();
+    const updated_at = this.formatDateToDDMMYYYY(now);
+
+    // Formatear created_at
+    let created_at = this.newDocument.created_at;
+    if (created_at) {
+        const createdDate = new Date(created_at);
+        created_at = this.formatDateToDDMMYYYY(createdDate);
+    }
+
+    // Preparar campos para actualizar
+    const fields: any = {
+        document_id: this.newDocument.document_id,
+        title: this.newDocument.title,
+        document_type: parseInt(this.newDocument.type),
+        status: this.newDocument.status,
+        updated_by: this.cse.data.user.data.userid,
+        updated_at: updated_at
+    };
+
+    // Solo agregar campos si tienen valor
+    if (this.newDocument.file_name) fields.file_name = this.newDocument.file_name;
+    if (this.newDocument.file_path) fields.file_path = this.newDocument.file_path;
+    if (this.newDocument.comment) fields.comment = this.newDocument.comment;
+    if (this.newDocument.created_by) fields.created_by = this.newDocument.created_by;
+    if (created_at) fields.created_at = created_at;
+
+    // Preparar archivos (si se seleccionó uno nuevo)
+    const files: any = {};
+    if (this.selectedFile) {
+        files.document_file = this.selectedFile;
+    }
+
+    const loading = { value: false };
+
+    console.log('Actualizando documento...', fields);
+
+    // Llamar al servicio de edición
+    this.mNGDocumentService.mngdocumentEdit(
+        fields,
+        files,
+        loading,
+        (resp) => {
+            console.log('Respuesta del servidor:', resp);
+
+            if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
+                alert(resp.resp_message || 'Documento actualizado exitosamente');
+
+                // Limpiar formulario y cerrar modal
+                this.resetNewDocumentForm();
+                if (this.newDocumentModalRef) {
+                    this.newDocumentModalRef.close('update');
+                }
+
+                // Recargar lista
+                this.mngdocumentList();
+            } else {
+                alert(resp.resp_message || 'Error al actualizar el documento');
+            }
+        },
+        (error) => {
+            console.error('Error en el servicio:', error);
+            alert('Ocurrió un error al actualizar el documento.');
+        }
+    );
+}
+
+/**
+ * Formatea una fecha al formato dd/MM/yyyy
+ */
+private formatDateToDDMMYYYY(date: Date): string {
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
 
 	loadDocuments(): void {
@@ -478,53 +641,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		this.isLoadingPdf = false;
 	}
 
-	downloadDocument(doc: DocumentModel): void {
-		console.log('Iniciando descarga del documento:', doc.fileName);
-
-		// Usar el servicio para descargar
-		this.mNGDocumentFileService.getFileDocument(doc.id, true).subscribe({
-			next: (response) => {
-				const blob = response.body;
-
-				if (!blob) {
-					console.error('No se recibió el archivo del servidor');
-					alert('Error al descargar el documento');
-					return;
-				}
-
-				// Obtener el nombre del archivo desde los headers
-				let filename = doc.fileName;
-				const contentDisposition = response.headers.get('Content-Disposition');
-				if (contentDisposition) {
-					const match = contentDisposition.match(/filename="?([^"]+)"?/);
-					if (match && match[1]) {
-						filename = match[1];
-					}
-				}
-
-				// Crear enlace temporal para descargar
-				const a = window.document.createElement('a');
-				const fileURL = URL.createObjectURL(blob);
-				a.href = fileURL;
-				a.download = filename;
-				window.document.body.appendChild(a);
-				a.click();
-				window.document.body.removeChild(a);
-
-				// Liberar el blob URL después de un momento
-				setTimeout(() => URL.revokeObjectURL(fileURL), 100);
-
-				console.log('Descarga iniciada:', filename);
-			},
-			error: (error) => {
-				console.error('Error al descargar el documento:', error);
-				alert('Error al descargar el documento. Por favor, intente nuevamente.');
-			}
-		});
-	}
-
-
-	/**
+		/**
 	 * Mapea un item de la lista a DocumentModel para usar en preview/download
 	 */
 	mapToDocumentModel(item: any): DocumentModel {
