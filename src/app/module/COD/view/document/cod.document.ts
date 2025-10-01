@@ -43,7 +43,8 @@ export interface NewDocument {
 }
 
 @Component({
-	templateUrl: './cod.document.html'
+	templateUrl: './cod.document.html',
+  styleUrls: ['./cod.document.css']
 })
 export class Document extends CODBase implements OnInit, AfterViewInit, OnDestroy {
 
@@ -135,31 +136,11 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 		this.cleanupPdfPreview();
 	}
 
+  
 
-
-
-	saveFile(document_id) {
-		this.fileService.getFileDocument(document_id, true).subscribe(response => {
-			const blob = response.body as Blob;
-
-			// recuperar filename desde los headers
-			let filename = 'documento.pdf';
-			const contentDisposition = response.headers.get('Content-Disposition');
-			if (contentDisposition) {
-				const match = contentDisposition.match(/filename="?([^"]+)"?/);
-				if (match && match[1]) {
-					filename = match[1];
-				}
-			}
-
-			const a = document.createElement('a');
-			const fileURL = URL.createObjectURL(blob);
-			a.href = fileURL;
-			a.download = filename; // ahora usa el nombre real
-			a.click();
-			URL.revokeObjectURL(fileURL);
-		});
-	}
+  saveFile(document_id: number): void {
+    this.fileService.downloadFileDirect(document_id);
+  }  
 
 	/* servicio - Listar documentos */
 	mngdocumentList() {
@@ -542,12 +523,46 @@ private formatDateToDDMMYYYY(date: Date): string {
     return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   }
   
-
+  previewPDF(document: DocumentModel): void {
+    if (document.fileExtension.toLowerCase() !== 'pdf') {
+      alert('Solo se pueden previsualizar archivos PDF');
+      return;
+    }
+  
+    this.previewDocument = document;
+    this.isLoadingPdf = true;
+  
+    const fileUrl = this.mNGDocumentFileService.getFileDocumentUrl(document.id, false);
+  
+    if (this.isMobile()) {
+      // En móvil → abrir directo al backend
+      window.open(fileUrl, '_blank');
+      this.isLoadingPdf = false;
+      return;
+    }
+  
+    // En desktop → usar modal con iframe
+    this.pdfPreviewModalRef = this.modalService.open(this.modalPDFPreview, {
+      size: 'xl',
+      backdrop: 'static',
+      keyboard: true
+    });
+  
+    this.pdfPreviewModalRef.result.then(
+      () => this.cleanupPdfPreview(),
+      () => this.cleanupPdfPreview()
+    );
+  
+    // Asignar la URL directamente al iframe (sin blob)
+    this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
+    this.isLoadingPdf = false;
+  }
+  
 	/**
 	 * Previsualiza un documento PDF en un modal
 	 * Solo permite PDFs y descarga el archivo del servidor usando el servicio
 	 */
-	previewPDF(document: DocumentModel): void {
+	previewPDF2(document: DocumentModel): void {
 		// Validar que sea un PDF
 		if (document.fileExtension.toLowerCase() !== 'pdf') {
 			console.warn('Solo se pueden previsualizar archivos PDF');

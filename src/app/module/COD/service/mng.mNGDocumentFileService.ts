@@ -24,4 +24,12 @@ export class MNGDocumentFileService {
     });
   }
 
+  getFileDocumentUrl(document_id: number, download: boolean = false): string {
+    return `${this.baseUrl}ovnMNG/module/mng/MNGDocumentServiceImp/mngdocument/${document_id}/file?download=${download}`;
+  }
+
+  downloadFileDirect(document_id: number): void {
+    const url = `${this.baseUrl}ovnMNG/module/mng/MNGDocumentServiceImp/mngdocument/${document_id}/file?download=true`;
+    window.open(url, '_blank'); // el navegador respeta el Content-Disposition
+  }
 }
