@@ -70,7 +70,7 @@
                   >
                     <i class="fas fa-download fa-xs"></i>
                   </button>
-                  <button class="btn btn-sm btn-success" (click)="openEditDocumentModal(item)"
+                  <button class="btn btn-sm btn-success" (click)="openEditDocumentModal(item)"  *ngIf="cse.tieneRol([ccs.config.rol_kudo.submitter])"
                   ><i title="¡Editar!" class="fas fa-edit"></i
                 ></button>
                   <!-- Botón de eliminar -->
@@ -99,19 +99,23 @@
                 </div>
               </td>
               <td>
-                <span
-                  [ngClass]="{
-                    'badge-dark': item.status === 0,
-                    'badge-success': item.status === 1,
-                    'badge-danger': item.status === 2
-                  }"
-                  class="badge p-2"
-                  [class.cursor-pointer]="item.status !== -1"
-                  [class.cursor-not-allowed]="item.status === -1"
-                  [title]="item.status === -1 ? 'Estado final - No se puede modificar' : 'Click para cambiar estado'"
-                >
-                  {{item.status_desc}}
-                </span>
+               <span
+    [ngClass]="{
+        'badge-success': item.status === 1,
+        'badge-warning': item.status === 0,
+        'badge-danger': item.status === 2
+    }"
+    class="badge"
+
+    [class.cursor-pointer]="!cse.tieneRol([ccs.config.rol_kudo.submitter]) && cse.tieneRol([ccs.config.rol_kudo.approver]) && item.status !== 2"
+
+    [class.cursor-not-allowed]="cse.tieneRol([ccs.config.rol_kudo.submitter]) || !cse.tieneRol([ccs.config.rol_kudo.approver]) || item.status === 2"
+
+    (click)="!cse.tieneRol([ccs.config.rol_kudo.submitter]) && cse.tieneRol([ccs.config.rol_kudo.approver]) && item.status !== 2 ? changeDocumentStatus(item, $event) : null"
+
+    [title]="getStatusTooltip(item)">
+    {{item.status_desc}}
+</span>
               </td>
 
               <!-- <td>{{item.created_by_desc}}</td>
@@ -304,7 +308,7 @@
         />
       </div>
 
-      <div class="form-group">
+      <div class="form-group" >
         <label class="form-label font-weight-bold"
           >Tipo de Documento <span class="text-danger">*</span></label
         >
@@ -322,7 +326,7 @@
       </div>
 
       <!-- Campo de Estado - Solo visible en modo EDICIÓN -->
-      <div class="form-group" *ngIf="newDocument.document_id">
+      <!-- <div class="form-group" *ngIf="newDocument.document_id && cse.tieneRol([ccs.config.rol_kudo.approver])">
         <label class="form-label font-weight-bold">Estado</label>
         <select
           name="inp_status"
@@ -336,7 +340,7 @@
         <small class="form-text text-muted">
           Puede cambiar el estado del documento desde aquí
         </small>
-      </div>
+      </div> -->
 
       <div class="form-group">
         <label class="form-label font-weight-bold">
