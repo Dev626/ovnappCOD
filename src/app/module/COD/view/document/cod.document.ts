@@ -43,7 +43,8 @@ export interface NewDocument {
 }
 
 @Component({
-	templateUrl: './cod.document.html'
+	templateUrl: './cod.document.html',
+  styleUrls: ['./cod.document.css']
 })
 export class Document extends CODBase implements OnInit, AfterViewInit, OnDestroy {
 

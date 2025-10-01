@@ -1,0 +1,78 @@
+
+  .document-title-cell {
+    min-width: 200px;
+  }
+
+  .empty-state {
+    padding: 2rem 0;
+  }
+
+  .btn-header-card {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .badge {
+    font-size: 0.75em;
+  }
+
+  .table td {
+    vertical-align: middle;
+  }
+
+  .btn-group .btn {
+    border-radius: 0.25rem;
+    margin-right: 2px;
+  }
+
+  .input-group-text {
+    background-color: #f8f9fc;
+    border-color: #d1d3e2;
+  }
+
+  @media (max-width: 768px) {
+    .btn-header-card {
+      flex-direction: column;
+    }
+
+    .table-responsive {
+      font-size: 0.875rem;
+    }
+  }
+  .cursor-pointer {
+    cursor: pointer;
+  }
+
+  .cursor-pointer:hover {
+    opacity: 0.8;
+  }
+
+  .status-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 50px; /* redondeado tipo pill */
+    font-size: 0.9rem;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    transition: transform 0.2s ease;
+  }
+  
+  .status-badge:hover {
+    transform: scale(1.05);
+  }
+  
+  /* Colores */
+  .status-badge.success {
+    background-color: #28a745;
+    color: #fff;
+  }
+  
+  .status-badge.warning {
+    background-color: #ffc107;
+    color: #212529;
+  }
+  
+  .status-badge.danger {
+    background-color: #dc3545;
+    color: #fff;
+  }
