@@ -39,10 +39,10 @@
                             <th>Tipo</th>
                             <th>Archivo</th>
                             <th>Estado</th>
-                            <th>Usuario registro</th>
-                            <th>Fecha subida</th>
-                            <th>Usuario de Modificacion</th>
-                            <th>Fecha modificación</th>
+                            <!-- <th>Usuario registro</th>
+                            <th>Fecha subida</th> -->
+                            <!-- <th>Usuario de Modificacion</th>
+                            <th>Fecha modificación</th> -->
                             <th style="width: 120px;">Vista previa</th>
                         </tr>
                     </thead>
@@ -56,27 +56,23 @@
                           <td>{{item.file_name}}</td>
                           <!-- <td>{{item.comment}}</td> -->
                           <td>
-    <span [ngClass]="{
-            'badge-success': item.status === 0,
-            'badge-warning': item.status === 1,
-            'badge-danger': item.status === -1
-          }"
-          class="badge"
-          [class.cursor-pointer]="item.status !== -1"
-          [class.cursor-not-allowed]="item.status === -1"
+                              <span [ngClass]="{
+                                      'badge-success': item.status === 0,
+                                      'badge-warning': item.status === 1,
+                                      'badge-danger': item.status === -1
+                                    }"
+                                    class="badge"
+                                    [class.cursor-pointer]="item.status !== -1"
+                                    [class.cursor-not-allowed]="item.status === -1"
 
-          [title]="item.status === -1 ? 'Estado final - No se puede modificar' : 'Click para cambiar estado'">
-        {{item.status_desc}}
-    </span>
-</td>
-                          <td>{{item.created_by_desc}}</td>
-                          <td>
-                              {{item.created_at |  ohDate: cse.config.formatShortDateTime}}
+                                    [title]="item.status === -1 ? 'Estado final - No se puede modificar' : 'Click para cambiar estado'">
+                                  {{item.status_desc}}
+                              </span>
                           </td>
-                          <td>{{item.updated_by_desc}}</td>
-                          <td>
-                              {{item.updated_at |  ohDate: cse.config.formatShortDateTime}}
-                          </td>
+                          <!-- <td>{{item.created_by_desc}}</td>
+                          <td>{{item.created_at |  ohDate: cse.config.formatShortDateTime}}</td> -->
+                          <!-- <td>{{item.updated_by_desc}}</td>
+                          <td>{{item.updated_at |  ohDate: cse.config.formatShortDateTime}}</td> -->
                           <td class="text-center">
                               <div class="btn-group" role="group">
                                   <!-- Botón de vista previa solo para PDFs -->
@@ -279,14 +275,24 @@
   </div>
 
   <div class="modal-body p-0" style="height: 80vh;">
-    <iframe
+    <!-- <iframe
       *ngIf="pdfPreviewUrl"
       [src]="pdfPreviewUrl"
       width="100%"
       height="100%"
       style="border: none;"
       title="Vista previa del PDF">
-    </iframe>
+    </iframe> -->
+    <object 
+      *ngIf="pdfPreviewUrl" 
+      [data]="pdfPreviewUrl" 
+      type="application/pdf" 
+      width="100%" 
+      height="100%">
+      <!-- <p>
+        El visor PDF no es compatible en este dispositivo. <a [href]="pdfPreviewUrl" target="_blank">Descargar PDF</a>
+      </p> -->
+    </object>
 
     <div *ngIf="!pdfPreviewUrl" class="d-flex justify-content-center align-items-center h-100">
       <div class="spinner-border text-primary" role="status">

@@ -537,6 +537,11 @@ private formatDateToDDMMYYYY(date: Date): string {
 			}
 		);
 	}
+  
+  isMobile(): boolean {
+    return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  }
+  
 
 	/**
 	 * Previsualiza un documento PDF en un modal
@@ -553,18 +558,20 @@ private formatDateToDDMMYYYY(date: Date): string {
 		this.previewDocument = document;
 		this.isLoadingPdf = true;
 
-		// Abrir el modal inmediatamente (mostrará loading)
-		this.pdfPreviewModalRef = this.modalService.open(this.modalPDFPreview, {
-			size: 'xl',
-			backdrop: 'static',
-			keyboard: true
-		});
+    if (!this.isMobile()) {
+      // Abrir el modal inmediatamente (mostrará loading)
+      this.pdfPreviewModalRef = this.modalService.open(this.modalPDFPreview, {
+        size: 'xl',
+        backdrop: 'static',
+        keyboard: true
+      });
+      // Configurar limpieza al cerrar el modal
+      this.pdfPreviewModalRef.result.then(
+        () => this.cleanupPdfPreview(),
+        () => this.cleanupPdfPreview()
+      );
+    }
 
-		// Configurar limpieza al cerrar el modal
-		this.pdfPreviewModalRef.result.then(
-			() => this.cleanupPdfPreview(),
-			() => this.cleanupPdfPreview()
-		);
 
 		// Llamar al servicio para obtener el PDF
 		this.mNGDocumentFileService.getFileDocument(document.id, false).subscribe({
@@ -589,10 +596,16 @@ private formatDateToDDMMYYYY(date: Date): string {
 
 				// Crear URL del blob
 				this.currentBlobUrl = URL.createObjectURL(blob);
-				this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl);
+				// this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl);
 				this.isLoadingPdf = false;
 
 				console.log('PDF cargado correctamente:', document.fileName);
+
+        if (this.isMobile()) {
+          window.open(this.currentBlobUrl, '_blank');
+        } else {
+          this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl);
+        }
 			},
 			error: (error) => {
 				console.error('Error al cargar el PDF:', error);
