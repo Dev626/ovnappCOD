@@ -136,11 +136,11 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 		this.cleanupPdfPreview();
 	}
 
-  
+
 
   saveFile(document_id: number): void {
     this.fileService.downloadFileDirect(document_id);
-  }  
+  }
 
 	/* servicio - Listar documentos */
 	mngdocumentList() {
@@ -184,46 +184,54 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 
 
 
-   /**
- * Obtiene los datos completos de un documento por su ID
- */
-mngdocumentGet(documentId: number): void {
-    this.mNGDocumentService.mngdocumentGet({
-        document_id: documentId
-    }, (resp: pMngdocumentGet) => {
-        console.log('Respuesta completa:', resp);
-        console.log('Propiedades:', Object.keys(resp));
+//    /**
+//  * Obtiene los datos completos de un documento por su ID
+//  */
+// mngdocumentGet(documentId: number): void {
+//     console.log('=== Llamando mngdocumentGet con ID:', documentId);
 
-        // Aquí verás qué propiedades tiene realmente
-    })
-}
+//     this.mNGDocumentService.mngdocumentGet({
+//         document_id: documentId
+//     }, (resp: pMngdocumentGet) => {
+//         console.log('=== Respuesta completa:', resp);
+//         console.log('=== Tipo de resp:', typeof resp);
+//         console.log('=== Keys de resp:', Object.keys(resp));
+
+//         // Intenta acceder de diferentes formas
+//         if (resp) {
+//             this.loadDocumentForEdit(resp); // Prueba pasando resp directamente
+//         } else {
+//             alert('No se pudo cargar el documento');
+//         }
+//     })
+// }
 
 /**
  * Abre el modal de edición y carga los datos del documento
  */
-openEditDocumentModal(item: any): void {
-    // Primero obtener los datos completos del documento
-    this.mngdocumentGet(item.document_id);
-}
-
 /**
- * Carga los datos del documento en el formulario de edición
+ * Abre el modal de edición con los datos del item del listado
  */
-private loadDocumentForEdit(document: any): void {
-    // Cargar los datos en la variable de edición
+openEditDocumentModal(item: any): void {
+    console.log('=== Item recibido para editar:', item);
+
+    // Cargar los datos directamente desde el item del listado
     this.newDocument = {
-        document_id: document.document_id,
-        title: document.title,
-        type: document.document_type?.toString(),
-        comment: document.comment,
-        file_name: document.file_name,
-        file_path: document.file_path,
-        status: document.status,
-        created_by: document.created_by,
-        created_at: document.created_at
+        document_id: item.document_id,
+        title: item.title,
+        type: item.document_type?.toString(),
+        comment: item.comment || '',
+        file_name: item.file_name,
+        file_path: item.file_path,
+        status: item.status,
+        created_by: item.created_by,
+        created_at: item.created_at
     };
 
-    this.selectedFileName = document.file_name || '';
+    this.selectedFileName = item.file_name || '';
+    this.selectedFile = null; // Limpiar archivo seleccionado
+
+    console.log('=== newDocument cargado:', this.newDocument);
 
     // Abrir el modal de edición
     this.newDocumentModalRef = this.modalService.open(this.modalNewDocument, {
@@ -233,12 +241,14 @@ private loadDocumentForEdit(document: any): void {
 
     this.newDocumentModalRef.result.then((result: string) => {
         if (result === 'update') {
-            // El guardado se maneja en updateDocument()
+            console.log('Modal cerrado con update');
         }
     }).catch(() => {
         this.resetNewDocumentForm();
     });
 }
+
+
 
 /**
  * Actualiza un documento existente
@@ -518,46 +528,46 @@ private formatDateToDDMMYYYY(date: Date): string {
 			}
 		);
 	}
-  
+
   isMobile(): boolean {
     return /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   }
-  
+
   previewPDF(document: DocumentModel): void {
     if (document.fileExtension.toLowerCase() !== 'pdf') {
       alert('Solo se pueden previsualizar archivos PDF');
       return;
     }
-  
+
     this.previewDocument = document;
     this.isLoadingPdf = true;
-  
+
     const fileUrl = this.mNGDocumentFileService.getFileDocumentUrl(document.id, false);
-  
+
     if (this.isMobile()) {
       // En móvil → abrir directo al backend
       window.open(fileUrl, '_blank');
       this.isLoadingPdf = false;
       return;
     }
-  
+
     // En desktop → usar modal con iframe
     this.pdfPreviewModalRef = this.modalService.open(this.modalPDFPreview, {
       size: 'xl',
       backdrop: 'static',
       keyboard: true
     });
-  
+
     this.pdfPreviewModalRef.result.then(
       () => this.cleanupPdfPreview(),
       () => this.cleanupPdfPreview()
     );
-  
+
     // Asignar la URL directamente al iframe (sin blob)
     this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(fileUrl);
     this.isLoadingPdf = false;
   }
-  
+
 	/**
 	 * Previsualiza un documento PDF en un modal
 	 * Solo permite PDFs y descarga el archivo del servidor usando el servicio
@@ -724,4 +734,111 @@ private formatDateToDDMMYYYY(date: Date): string {
 			this.pdfPreviewModalRef.dismiss();
 		}
 	}
+
+/**
+ * Cambia el estado de un documento con un solo click
+ * Solo disponible para usuarios con rol de approver
+ * Estados: 0=Enviado, 1=Aprobado, 2=Removido
+ */
+changeDocumentStatus(item: any, event: Event): void {
+    event.stopPropagation();
+
+
+
+    // No permitir cambios si el estado es 2 (Removido - estado final)
+    if (item.status === 2) {
+        alert('No se puede modificar un documento removido');
+        return;
+    }
+
+    // Determinar el nuevo estado (ciclo: 0 → 1 → 2)
+    let newStatus: number;
+    let newStatusDesc: string;
+
+    if (item.status === 0) {
+        // De Enviado (0) a Aprobado (1)
+        newStatus = 1;
+        newStatusDesc = 'Aprobado';
+    } else if (item.status === 1) {
+        // De Aprobado (1) a Removido (2)
+        newStatus = 2;
+        newStatusDesc = 'Removido';
+    } else {
+        // Por si acaso
+        newStatus = 0;
+        newStatusDesc = 'Enviado';
+    }
+
+    // Confirmar el cambio
+    if (!confirm(`¿Está seguro de cambiar el estado a "${newStatusDesc}"?`)) {
+        return;
+    }
+
+    // Preparar campos para actualizar
+    const fields: any = {
+        document_id: item.document_id,
+        title: item.title,
+        document_type: item.document_type,
+        status: newStatus,
+        updated_by: this.cse.data.user.data.userid,
+        updated_at: this.formatDateToDDMMYYYY(new Date())
+    };
+
+    // Agregar campos obligatorios
+    if (item.file_name) fields.file_name = item.file_name;
+    if (item.file_path) fields.file_path = item.file_path;
+    if (item.comment) fields.comment = item.comment;
+    if (item.created_by) fields.created_by = item.created_by;
+    if (item.created_at) {
+        const createdDate = new Date(item.created_at);
+        fields.created_at = this.formatDateToDDMMYYYY(createdDate);
+    }
+
+    const loading = { value: false };
+
+    console.log('Cambiando estado del documento...', fields);
+
+    this.mNGDocumentService.mngdocumentEdit(
+        fields,
+        {},
+        loading,
+        (resp) => {
+            if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
+                // Actualizar item local
+                item.status = newStatus;
+                item.status_desc = newStatusDesc;
+
+                // Recargar lista
+                this.mngdocumentList();
+            } else {
+                alert(resp.resp_message || 'Error al actualizar el estado');
+            }
+        },
+        (error) => {
+            console.error('Error al cambiar estado:', error);
+            alert('Ocurrió un error al cambiar el estado del documento.');
+        }
+    );
+}
+  /**
+ * Retorna el tooltip apropiado según el rol y estado del documento
+ */
+getStatusTooltip(item: any): string {
+    if (item.status === 2) {
+        return 'Estado final - No se puede modificar';
+    }
+
+    if (!this.cse.tieneRol([this.ccs.config.rol_kudo.approver])) {
+        return 'Solo usuarios con rol Approver pueden cambiar el estado';
+    }
+
+    // Mostrar el siguiente estado
+    if (item.status === 0) {
+        return 'Click para cambiar a: Aprobado';
+    } else if (item.status === 1) {
+        return 'Click para cambiar a: Removido';
+    }
+
+    return 'Click para cambiar estado';
+}
 }
