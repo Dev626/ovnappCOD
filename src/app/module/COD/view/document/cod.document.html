@@ -54,7 +54,7 @@
                 <div class="btn-group" role="group">
                   <!-- Botón de vista previa solo para PDFs -->
                   <button
-                    class="btn btn-sm btn-primary"
+                    class="btn btn-sm btn-primary mr-2"
                     (click)="previewPDF(mapToDocumentModel(item))"
                     [disabled]="getFileExtension(item.file_name) !== 'pdf'"
                     [title]="getFileExtension(item.file_name) === 'pdf' ? 'Previsualizar PDF' : 'Solo PDFs'"
@@ -64,13 +64,15 @@
 
                   <!-- Botón de descarga -->
                   <button
-                    class="btn btn-sm btn-info"
+                    class="btn btn-sm btn-info mr-2"
                     (click)="saveFile(item.document_id)"
                     title="Descargar archivo"
                   >
                     <i class="fas fa-download fa-xs"></i>
                   </button>
-
+                  <button class="btn btn-sm btn-success" (click)="openEditDocumentModal(item)"
+                  ><i title="¡Editar!" class="fas fa-edit"></i
+                ></button>
                   <!-- Botón de eliminar -->
                   <!-- <button
                     class="btn btn-sm btn-danger"
@@ -101,7 +103,7 @@
                   [ngClass]="{
                     'badge-dark': item.status === 0,
                     'badge-success': item.status === 1,
-                    'badge-danger': item.status === -1
+                    'badge-danger': item.status === 2
                   }"
                   class="badge p-2"
                   [class.cursor-pointer]="item.status !== -1"
@@ -317,6 +319,23 @@
           [openOnClick]="true"
           placeholder="Seleccione tipo documento..."
         ></oh-predictive-text>
+      </div>
+
+      <!-- Campo de Estado - Solo visible en modo EDICIÓN -->
+      <div class="form-group" *ngIf="newDocument.document_id">
+        <label class="form-label font-weight-bold">Estado</label>
+        <select
+          name="inp_status"
+          class="form-control"
+          [(ngModel)]="newDocument.status"
+        >
+          <option [value]="0">Enviado</option>
+          <option [value]="1">Aprobado</option>
+          <option [value]="2">Removido</option>
+        </select>
+        <small class="form-text text-muted">
+          Puede cambiar el estado del documento desde aquí
+        </small>
       </div>
 
       <div class="form-group">
