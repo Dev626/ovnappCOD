@@ -70,9 +70,32 @@
                   >
                     <i class="fas fa-download fa-xs"></i>
                   </button>
-                  <button class="btn btn-sm btn-success" (click)="openEditDocumentModal(item)"  *ngIf="cse.tieneRol([ccs.config.rol_kudo.submitter])"
-                  ><i title="¡Editar!" class="fas fa-edit"></i
-                ></button>
+                  <!-- Botón de editar -->
+                  <button
+                  *ngIf="cse.tieneRol([ccs.config.rol_kudo.submitter])"
+                    class="btn btn-sm btn-success mr-2"
+                    (click)="openEditDocumentModal(item)"
+                  >
+                    <i title="¡Editar!" class="fas fa-edit"></i>
+                  </button>
+                  <!-- Botón de aprobar -->
+                  <button
+    class="btn btn-sm btn-success"
+    (click)="approveDocument(item, $event)"
+
+    *ngIf="cse.tieneRol([ccs.config.rol_kudo.approver]) && !cse.tieneRol([ccs.config.rol_kudo.submitter])"
+>
+    <i title="Aprobar" class="fas fa-check"></i>
+</button>
+                  <!-- Botón de remover -->
+                  <button
+                  *ngIf="cse.tieneRol([ccs.config.rol_kudo.submitter])"
+                      class="btn btn-sm btn-danger"
+                      (click)="removeDocument(item, $event)"
+                  >
+                    <i title="Remover" class="fas fa-trash"></i>
+                  </button>
+
                   <!-- Botón de eliminar -->
                   <!-- <button
                     class="btn btn-sm btn-danger"
@@ -99,23 +122,16 @@
                 </div>
               </td>
               <td>
-               <span
-    [ngClass]="{
-        'badge-success': item.status === 1,
-        'badge-warning': item.status === 0,
-        'badge-danger': item.status === 2
-    }"
-    class="badge"
-
-    [class.cursor-pointer]="!cse.tieneRol([ccs.config.rol_kudo.submitter]) && cse.tieneRol([ccs.config.rol_kudo.approver]) && item.status !== 2"
-
-    [class.cursor-not-allowed]="cse.tieneRol([ccs.config.rol_kudo.submitter]) || !cse.tieneRol([ccs.config.rol_kudo.approver]) || item.status === 2"
-
-    (click)="!cse.tieneRol([ccs.config.rol_kudo.submitter]) && cse.tieneRol([ccs.config.rol_kudo.approver]) && item.status !== 2 ? changeDocumentStatus(item, $event) : null"
-
-    [title]="getStatusTooltip(item)">
-    {{item.status_desc}}
-</span>
+                <span
+                  [ngClass]="{
+                  'badge-success': item.status === 1,
+                  'badge-warning': item.status === 0,
+                  'badge-danger': item.status === 2
+                    }"
+                  class="badge"
+                >
+                  {{item.status_desc}}
+                </span>
               </td>
 
               <!-- <td>{{item.created_by_desc}}</td>
@@ -308,7 +324,7 @@
         />
       </div>
 
-      <div class="form-group" >
+      <div class="form-group">
         <label class="form-label font-weight-bold"
           >Tipo de Documento <span class="text-danger">*</span></label
         >
