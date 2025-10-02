@@ -7,6 +7,7 @@ import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
 import { MNGDocumentServiceJPO, pMngdocumentGet, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
 import { MNGDocumentFileService } from '../../service/mng.mNGDocumentFileService';
+import { ADMCatalogoServiceJPO, pGescatalogoListarAll, pGescatalogoObtener } from '@ovenfo/moduleadm';
 
 export interface DocumentModel {
 	id: number;
@@ -49,6 +50,8 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 	/* servicio */
 	private mNGDocumentService: MNGDocumentServiceJPO
 	private mNGDocumentFileService: MNGDocumentFileService
+	private aDMCatalogoService: ADMCatalogoServiceJPO
+
 	/* catalogo */
 	catalogo: any = {}
 	pagin: any = {}
@@ -96,6 +99,7 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 
 		/* servicio */
 		this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
+		this.aDMCatalogoService = new ADMCatalogoServiceJPO(ohService)
 		this.mNGDocumentFileService = fileService;
 		this.mngdocumentList();
 
@@ -112,12 +116,13 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 			size_rows: 10,
 		}
 		/* catalogo */
-		new ohLoadSubModule(cse).mapOnlyCatalogs([
-			{ id: 62471, nombre: 'mng_cat_type_file' }
-		]).then((it) => {
-			this.catalogo = it;
-			console.log('this.catalogo:', this.catalogo)
-		})
+    this.gescatalogoObtener();
+		// new ohLoadSubModule(cse).mapOnlyCatalogs([
+		// 	{ id: 62471, nombre: 'mng_cat_type_file' }
+		// ]).then((it) => {
+		// 	this.catalogo = it;
+		// 	console.log('this.catalogo:', this.catalogo)
+		// })
 	}
 
 	ngOnInit() {
@@ -134,7 +139,14 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 		this.cleanupPdfPreview();
 	}
 
-
+	gescatalogoObtener() {
+		console.log('gescatalogoObtener:')
+		this.aDMCatalogoService.gescatalogoListarAll({
+      catalogos_id: '["62471"]'
+		}, (resp: pGescatalogoListarAll[]) => {
+		  console.log('resp:', resp)
+		});
+	}
 
   saveFile(document_id: number): void {
     this.fileService.downloadFileDirect(document_id);
