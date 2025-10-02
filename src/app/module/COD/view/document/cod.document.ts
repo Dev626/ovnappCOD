@@ -120,6 +120,7 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 		// new ohLoadSubModule(cse).mapOnlyCatalogs([
 		// 	{ id: 62471, nombre: 'mng_cat_type_file' }
 		// ]).then((it) => {
+		// 	console.log('it:', it)
 		// 	this.catalogo = it;
 		// 	console.log('this.catalogo:', this.catalogo)
 		// })
@@ -142,11 +143,27 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 	gescatalogoObtener() {
 		console.log('gescatalogoObtener:')
 		this.aDMCatalogoService.gescatalogoListarAll({
-      catalogos_id: '["62471"]'
+      catalogos_id: '[62471,62472,62473]'
 		}, (resp: pGescatalogoListarAll[]) => {
 		  console.log('resp:', resp)
+      this.catalogo = this.convertirCatalogos(resp);
 		});
 	}
+
+  convertirCatalogos(data: any[]) {
+    return data
+      .filter(item => item.catalogo_padre_id !== null) // ignorar los padres raíz
+      .map(item => ({
+        catalog_parent_alias: item.catalog_parent_alias,
+        catalogo_id: item.catalogo_id,
+        alias: item.alias,
+        descripcion: item.descripcion,
+        catalogo_padre_id: item.catalogo_padre_id,
+        descricion_larga: item.descricion_larga,
+        estado: item.estado,
+        id: String(item.catalogo_id)
+      }));
+  }  
 
   saveFile(document_id: number): void {
     this.fileService.downloadFileDirect(document_id);
