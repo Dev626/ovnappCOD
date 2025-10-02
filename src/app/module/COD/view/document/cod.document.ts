@@ -143,7 +143,7 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 	gescatalogoObtener() {
 		console.log('gescatalogoObtener:')
 		this.aDMCatalogoService.gescatalogoListarAll({
-      catalogos_id: '[62471,62472,62473]'
+      catalogos_id: '[62471]'
 		}, (resp: pGescatalogoListarAll[]) => {
 		  console.log('resp:', resp)
       this.catalogo = this.convertirCatalogos(resp);
