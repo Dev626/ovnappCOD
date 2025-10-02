@@ -51,6 +51,16 @@ export class OVMBackend extends OVMBackendBase implements OnInit {
   }
 
   ngOnInit() {
+    const nav = document.querySelector('.topbar>.navbar-nav');
+    if (nav) {
+      const observer = new MutationObserver(() => {
+        const elementos = nav.querySelectorAll('li, a, button');
+          elementos[0].remove();
+          elementos[3].remove();
+          observer.disconnect(); // corta la observación
+      });    
+      observer.observe(nav, { childList: true, subtree: true });
+    }
     this.validOnInit();
   }
 

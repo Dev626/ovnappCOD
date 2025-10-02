@@ -22,17 +22,6 @@ export class CODMain extends CODBase implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-      const nav = document.querySelector('.navbar-nav');
-      if (nav) {
-        const observer = new MutationObserver(() => {
-          const elementos = nav.querySelectorAll('li, a, button');
-            elementos[0].remove();
-            elementos[3].remove();
-            observer.disconnect(); // corta la observación
-        });    
-        observer.observe(nav, { childList: true, subtree: true });
-      }
-
       this.ohService.getOH().getLoader().close();
     }
 
