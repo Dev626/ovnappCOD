@@ -7,8 +7,6 @@ import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
 import { MNGDocumentServiceJPO, pMngdocumentGet, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
 import { MNGDocumentFileService } from '../../service/mng.mNGDocumentFileService';
-import { Console } from 'console';
-
 
 export interface DocumentModel {
 	id: number;
