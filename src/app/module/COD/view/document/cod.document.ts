@@ -132,11 +132,9 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 	}
 
 	gescatalogoObtener() {
-		console.log('gescatalogoObtener:')
 		this.aDMCatalogoService.gescatalogoListarAll({
       catalogos_id: '[62471]'
 		}, (resp: pGescatalogoListarAll[]) => {
-		  console.log('resp:', resp)
       this.catalogo = this.convertirCatalogos(resp);
 		});
 	}
@@ -175,27 +173,27 @@ pdfPreviewModalRef: NgbModalRef | undefined;
     // Si es SUBMITTER (o tiene ambos roles), filtrar por su userid
     if (isSubmitter) {
         params.created_by = this.cse.data.user.data.userid;
-        console.log('Filtrando como SUBMITTER - UserID:', params.created_by);
+        // console.log('Filtrando como SUBMITTER - UserID:', params.created_by);
     }
 
     // Si es APPROVER solo (sin submitter), no enviar created_by para traer todos
     if (isApprover && !isSubmitter) {
-        console.log('Cargando todos los documentos (APPROVER)');
+        // console.log('Cargando todos los documentos (APPROVER)');
         // No agregar created_by para traer todos los registros
     }
 
     // Si no tiene ningún rol válido, igual filtrar por su userid para no mostrar nada
     if (!isApprover && !isSubmitter) {
         params.created_by = -1; // ID inexistente para no traer nada
-        console.log('Usuario sin rol válido');
+        // console.log('Usuario sin rol válido');
     }
 
     // Llamar al servicio con los parámetros
     this.mNGDocumentService.mngdocumentList(params, (resp: pMngdocumentList) => {
         this.pagin.total = resp.response;
         this.ldocuments = resp.documents;
-        console.log('Documentos cargados:', this.ldocuments.length);
-        console.log('Respuesta completa:', resp);
+        // console.log('Documentos cargados:', this.ldocuments.length);
+        // console.log('Respuesta completa:', resp);
     });
 }
 
@@ -231,7 +229,7 @@ pdfPreviewModalRef: NgbModalRef | undefined;
  * Abre el modal de edición con los datos del item del listado
  */
 openEditDocumentModal(item: any): void {
-    console.log('=== Item recibido para editar:', item);
+    // console.log('=== Item recibido para editar:', item);
 
     // Cargar los datos directamente desde el item del listado
     this.newDocument = {
@@ -249,7 +247,7 @@ openEditDocumentModal(item: any): void {
     this.selectedFileName = item.file_name || '';
     this.selectedFile = null; // Limpiar archivo seleccionado
 
-    console.log('=== newDocument cargado:', this.newDocument);
+    // console.log('=== newDocument cargado:', this.newDocument);
 
     // Abrir el modal de edición
     this.newDocumentModalRef = this.modalService.open(this.modalNewDocument, {
@@ -259,7 +257,7 @@ openEditDocumentModal(item: any): void {
 
     this.newDocumentModalRef.result.then((result: string) => {
         if (result === 'update') {
-            console.log('Modal cerrado con update');
+            // console.log('Modal cerrado con update');
         }
     }).catch(() => {
         this.resetNewDocumentForm();
@@ -313,7 +311,7 @@ updateDocument(): void {
 
     const loading = { value: false };
 
-    console.log('Actualizando documento...', fields);
+    // console.log('Actualizando documento...', fields);
 
     // Llamar al servicio de edición
     this.mNGDocumentService.mngdocumentEdit(
@@ -321,7 +319,7 @@ updateDocument(): void {
         files,
         loading,
         (resp) => {
-            console.log('Respuesta del servidor:', resp);
+            // console.log('Respuesta del servidor:', resp);
 
             if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
                 alert(resp.resp_message || 'Documento actualizado exitosamente');
@@ -504,20 +502,20 @@ private formatDateToDDMMYYYY(date: Date): string {
 		// Variable para controlar el loading
 		const loading = { value: false };
 
-		console.log('Guardando documento...', fields);
+		// console.log('Guardando documento...', fields);
 
 		// Llamar al servicio de registro
-		console.log('files:', files)
+		// console.log('files:', files)
 		this.mNGDocumentService.mngdocumentRegister(
 			fields,
 			files,
 			loading,
 			(resp: pMngdocumentRegister) => {
-				console.log('Respuesta del servidor:', resp);
+				// console.log('Respuesta del servidor:', resp);
 
 				// Verificar si el registro fue exitoso
 				if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
-					console.log('Documento guardado correctamente');
+					// console.log('Documento guardado correctamente');
 
 					// Mostrar mensaje de éxito
 					alert(resp.resp_message || 'Documento registrado exitosamente');
@@ -642,7 +640,7 @@ private formatDateToDDMMYYYY(date: Date): string {
 				// this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl);
 				this.isLoadingPdf = false;
 
-				console.log('PDF cargado correctamente:', document.fileName);
+				// console.log('PDF cargado correctamente:', document.fileName);
 
         if (this.isMobile()) {
           window.open(this.currentBlobUrl, '_blank');
