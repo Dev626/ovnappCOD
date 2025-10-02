@@ -1,4 +1,4 @@
-import { Component, AfterViewInit, OnInit} from '@angular/core';
+import { Component, AfterViewInit, OnInit, Renderer2} from '@angular/core';
 import { Router } from '@angular/router';
 
 import { CoreService, OHService } from '@ovenfo/framework';
@@ -10,7 +10,7 @@ import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 })
 export class CODMain extends CODBase implements OnInit, AfterViewInit {
 
-    constructor(private router : Router, private ohService : OHService, public override cse : CoreService, public override ccs : CODCoreService){
+    constructor(private router : Router, private ohService : OHService, public override cse : CoreService, public override ccs : CODCoreService, private renderer: Renderer2){
         super(ohService, cse, ccs);
     }
 
@@ -21,8 +21,19 @@ export class CODMain extends CODBase implements OnInit, AfterViewInit {
         }
     }
 
-    ngAfterViewInit(){
-         this.ohService.getOH().getLoader().close();
+    ngAfterViewInit(): void {
+      const nav = document.querySelector('.navbar-nav');
+      if (nav) {
+        const observer = new MutationObserver(() => {
+          const elementos = nav.querySelectorAll('li, a, button');
+            elementos[0].remove();
+            elementos[3].remove();
+            observer.disconnect(); // corta la observación
+        });    
+        observer.observe(nav, { childList: true, subtree: true });
+      }
+
+      this.ohService.getOH().getLoader().close();
     }
 
 }
