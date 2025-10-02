@@ -103,7 +103,6 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 		this.mNGDocumentFileService = fileService;
 		this.mngdocumentList();
 
-
 // console.log('Tiene rol?', this.cse.tieneRol([this.ccs.config.rol_kudo.approver]));
 // console.log('Roles del usuario:', this.cse.data.user.data.roles);
 // console.log('Rol buscado:', this.ccs.config.rol_kudo.submitter);
@@ -115,15 +114,6 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 			total: 0,
 			size_rows: 10,
 		}
-		/* catalogo */
-    this.gescatalogoObtener();
-		// new ohLoadSubModule(cse).mapOnlyCatalogs([
-		// 	{ id: 62471, nombre: 'mng_cat_type_file' }
-		// ]).then((it) => {
-		// 	console.log('it:', it)
-		// 	this.catalogo = it;
-		// 	console.log('this.catalogo:', this.catalogo)
-		// })
 	}
 
 	ngOnInit() {
@@ -131,7 +121,8 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 	}
 
 	ngAfterViewInit() {
-
+		/* catalogo */
+    this.gescatalogoObtener();
 	}
 
 	ngOnDestroy() {
