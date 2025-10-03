@@ -56,6 +56,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 	catalogo: any = {}
 	pagin: any = {}
 	// ViewChild para los modales
+
 	@ViewChild('modalDocumentFilter') modalDocumentFilter!: TemplateRef<any>;
 	@ViewChild('modalNewDocument') modalNewDocument!: TemplateRef<any>;
 	@ViewChild('modalPDFPreview') modalPDFPreview!: TemplateRef<any>;
@@ -116,6 +117,8 @@ pdfPreviewModalRef: NgbModalRef | undefined;
 		}
 	}
 
+
+
 	ngOnInit() {
 		/* Cargar documentos desde el servicio */
 	}
@@ -152,7 +155,7 @@ pdfPreviewModalRef: NgbModalRef | undefined;
         estado: item.estado,
         id: String(item.catalogo_id)
       }));
-  }  
+  }
 
   saveFile(document_id: number): void {
     this.fileService.downloadFileDirect(document_id);
@@ -322,7 +325,8 @@ updateDocument(): void {
             // console.log('Respuesta del servidor:', resp);
 
             if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
-                alert(resp.resp_message || 'Documento actualizado exitosamente');
+                this.ohService.getOH().getAd().success(resp.resp_message || 'Documento actualizado correctamente');
+
 
                 // Limpiar formulario y cerrar modal
                 this.resetNewDocumentForm();
@@ -333,12 +337,11 @@ updateDocument(): void {
                 // Recargar lista
                 this.mngdocumentList();
             } else {
-                alert(resp.resp_message || 'Error al actualizar el documento');
+                this.ohService.getOH().getAd().error(resp.resp_message || 'Error al actualizar el documento');
             }
         },
         (error) => {
-            console.error('Error en el servicio:', error);
-            alert('Ocurrió un error al actualizar el documento.');
+            this.ohService.getOH().getAd().error('Ocurrió un error al actualizar el documento');
         }
     );
 }
@@ -518,8 +521,8 @@ private formatDateToDDMMYYYY(date: Date): string {
 					// console.log('Documento guardado correctamente');
 
 					// Mostrar mensaje de éxito
-					alert(resp.resp_message || 'Documento registrado exitosamente');
-
+					// alert(resp.resp_message || 'Documento registrado exitosamente');
+          this.ohService.getOH().getAd().success(resp.resp_message);
 					// Limpiar el formulario
 					this.resetNewDocumentForm();
 
@@ -533,14 +536,14 @@ private formatDateToDDMMYYYY(date: Date): string {
 
 				} else {
 					// Mostrar mensaje de error
-					console.error('Error al guardar:', resp.resp_message);
-					alert(resp.resp_message || 'Error al guardar el documento');
+					//console.error('Error al guardar:', resp.resp_message);
+					this.ohService.getOH().getLoader().showError(resp.resp_message);
 				}
 			},
 			(error) => {
 				// Callback de error
-				console.error('Error en el servicio:', error);
-				alert('Ocurrió un error al guardar el documento. Por favor intente nuevamente.');
+				//console.error('Error en el servicio:', error);
+				this.ohService.getOH().getLoader().showError('Ocurrió un error al guardar el documento. Por favor intente nuevamente.');
 			}
 		);
 	}
@@ -908,51 +911,101 @@ private updateDocumentStatus(item: any, newStatus: number, newStatusDesc: string
     );
 }
 
+// approveDocument(item: any, event: Event): void {
+//     event.stopPropagation();
+
+//     // SOLO permitir si el estado actual es 0 (Enviado)
+//     if (item.status !== 0) {
+//         alert('Solo se pueden aprobar documentos en estado "Enviado".');
+//         return;
+//     }
+
+//     const newStatus = 1;
+//     const newStatusDesc = 'Aprobado';
+
+//     // Confirmar el cambio
+//     if (!confirm(`¿Está seguro de cambiar el estado a "${newStatusDesc}"?`)) {
+//         return;
+//     }
+
+//     // Llama a la función auxiliar para realizar la actualización en el servidor
+//     this.updateDocumentStatus(item, newStatus, newStatusDesc);
+// }
+
 approveDocument(item: any, event: Event): void {
     event.stopPropagation();
 
     // SOLO permitir si el estado actual es 0 (Enviado)
     if (item.status !== 0) {
-        alert('Solo se pueden aprobar documentos en estado "Enviado".');
+        this.ohService.getOH().getAd().warning('Solo se pueden aprobar documentos en estado "Enviado"');
         return;
     }
 
     const newStatus = 1;
     const newStatusDesc = 'Aprobado';
 
-    // Confirmar el cambio
-    if (!confirm(`¿Está seguro de cambiar el estado a "${newStatusDesc}"?`)) {
-        return;
-    }
-
-    // Llama a la función auxiliar para realizar la actualización en el servidor
-    this.updateDocumentStatus(item, newStatus, newStatusDesc);
+    // Confirmar el cambio usando el sistema del framework
+    this.ohService.getOH().getUtil().confirm(
+        `¿Está seguro de cambiar el estado del documento "${item.title}" a "${newStatusDesc}"?`,
+        () => {
+            // Este callback se ejecuta cuando el usuario confirma
+            this.updateDocumentStatus(item, newStatus, newStatusDesc);
+        }
+    );
 }
+
+// removeDocument(item: any, event: Event): void {
+//     event.stopPropagation();
+
+//     // No permitir cambios si el estado ya es 2 (Removido)
+//     if (item.status === 2) {
+//         alert('El documento ya está removido.');
+//         return;
+//     }
+
+//     // Opcional: Si solo quieres permitir la remoción desde ciertos estados
+//     if (item.status !== 0 && item.status !== 1) {
+//         alert('Solo se pueden remover documentos en estado "Enviado" o "Aprobado".');
+//         return;
+//     }
+
+//     const newStatus = 2;
+//     const newStatusDesc = 'Removido';
+
+//     // Confirmar el cambio
+//     if (!confirm(`¿Está seguro de cambiar el estado a "${newStatusDesc}"? Este es un cambio final.`)) {
+//         return;
+//     }
+
+//     // Llama a la función auxiliar para realizar la actualización en el servidor
+//     this.updateDocumentStatus(item, newStatus, newStatusDesc);
+// }
 
 removeDocument(item: any, event: Event): void {
     event.stopPropagation();
 
     // No permitir cambios si el estado ya es 2 (Removido)
     if (item.status === 2) {
-        alert('El documento ya está removido.');
+        this.ohService.getOH().getAd().warning('El documento ya está removido');
         return;
     }
 
     // Opcional: Si solo quieres permitir la remoción desde ciertos estados
     if (item.status !== 0 && item.status !== 1) {
-        alert('Solo se pueden remover documentos en estado "Enviado" o "Aprobado".');
+        this.ohService.getOH().getAd().warning('Solo se pueden remover documentos en estado "Enviado" o "Aprobado"');
         return;
     }
 
     const newStatus = 2;
     const newStatusDesc = 'Removido';
 
-    // Confirmar el cambio
-    if (!confirm(`¿Está seguro de cambiar el estado a "${newStatusDesc}"? Este es un cambio final.`)) {
-        return;
-    }
-
-    // Llama a la función auxiliar para realizar la actualización en el servidor
-    this.updateDocumentStatus(item, newStatus, newStatusDesc);
+    // Confirmar el cambio usando el sistema del framework
+    this.ohService.getOH().getUtil().confirm(
+        `¿Está seguro de cambiar el estado del documento "${item.title}" a "${newStatusDesc}"? Este es un cambio final.`,
+        () => {
+            // Este callback se ejecuta cuando el usuario confirma
+            this.updateDocumentStatus(item, newStatus, newStatusDesc);
+        }
+    );
 }
 }
