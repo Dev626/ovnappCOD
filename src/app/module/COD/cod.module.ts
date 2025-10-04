@@ -10,7 +10,7 @@ import { NgxCurrencyModule } from 'ngx-currency'
 import { TranslocoModule, TRANSLOCO_SCOPE } from '@ngneat/transloco'
 
 import { OHCore, OVCCanActivateModule, SHISharedCore } from '@ovenfo/framework'
-import { CODMain, Document, User } from './view/cod.core';
+import { CODMain, Document, User, UserNew, UserDocument } from './view/cod.core';
 import { routing } from './cod.routing'
 
 import { CODCoreService } from './cod.coreService'
@@ -28,7 +28,7 @@ import { CODCoreService } from './cod.coreService'
         SHISharedCore
     ],
     declarations: [
-		CODMain, Document, User
+		CODMain, Document, User, UserNew, UserDocument
     ],
     providers: [CODCoreService, OVCCanActivateModule, { provide: TRANSLOCO_SCOPE, useValue: 'cod' }]
 })

@@ -1,0 +1,372 @@
+<div class="container-fluid">
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">Usuario</div>
+    <div class="card-body">
+      <form #frmUsuario="ngForm" class="form-enable">
+        <div class="row">
+          <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+            <label>ID de Acceso</label>
+            <div class="input-group mb-3">
+              <input
+                #inp_id="ngModel"
+                name="inp_id"
+                type="email"
+                class="form-control"
+                [(ngModel)]="oUser.id"
+                [ohInputFormat]="'upper'"
+                minlength="2"
+                maxlength="100"
+                [required]="true"
+                (keyup.enter)="seguserManageFindUser()"
+                [disabled]="flag_checked"
+              />
+              <div class="input-group-append" *ngIf="!oUser.user_id">
+                <button
+                  class="btn btn-outline-secondary"
+                  type="button"
+                  [disabled]="flag_checked"
+                  (click)="seguserManageFindUser()"
+                >
+                  <i class="fas fa-search"></i>
+                </button>
+              </div>
+            </div>
+            <div
+              *ngIf="inp_id.invalid && (inp_id.dirty || inp_id.touched)"
+              class="alert-form"
+            >
+              <ul>
+                <li *ngIf="inp_id.errors['required']">El campo es requerido.</li>
+                <li *ngIf="inp_id.errors['minlength']">
+                  El campo debe tener como mínimo 2 caracteres.
+                </li>
+                <li *ngIf="inp_id.errors['maxlength']">
+                  El campo debe tener como máximo 100 caracteres.
+                </li>
+              </ul>
+            </div>
+          </div>
+          <ng-template [ngIf]="flag_checked">
+            <div
+              class="form-group col-6 col-sm-6 col-md-6 col-lg-3"
+              *ngIf="dataInit && dataInit['_configs'] && dataInit['_configs']['link_person_user']"
+            >
+              <label
+                >Persona
+                <span class="text-danger" ngbTooltip="Campo obligatorio"
+                  >*</span
+                ></label
+              >
+              <oh-predictive-text
+                [form]="frmUsuario"
+                [name]="'inp_person_id'"
+                [(value)]="oUser.person_id"
+                [data]="admpersonSearch"
+                [searchBy]="['fullname']"
+                [return]="'person_id'"
+                (onChangeEvent)="onSelectPerson($event)"
+                (onClean)="onSelectPerson()"
+                [selectedLabel]="oUser.person_fullname"
+                [required]="true"
+              ></oh-predictive-text>
+            </div>
+            <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+              <label>Correo</label>
+              <input
+                #inp_email="ngModel"
+                name="inp_email"
+                type="email"
+                class="form-control"
+                [(ngModel)]="oUser.email"
+                [ohInputFormat]="'upper'"
+                minlength="2"
+                maxlength="100"
+                [email]="true"
+              />
+              <div
+                *ngIf="inp_email.invalid && (inp_email.dirty || inp_email.touched)"
+                class="alert-form"
+              >
+                <ul>
+                  <li *ngIf="inp_email.errors['required']">
+                    El campo es requerido.
+                  </li>
+                  <li *ngIf="inp_email.errors['minlength']">
+                    El campo debe tener como mínimo 2 caracteres.
+                  </li>
+                  <li *ngIf="inp_email.errors['maxlength']">
+                    El campo debe tener como máximo 100 caracteres.
+                  </li>
+                  <li *ngIf="inp_email.errors['email']">
+                    El campo debe ser un email válido.
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group col-6 col-sm-4 col-md-3 col-lg-3">
+              <label
+                >Clave
+                <span class="text-danger" ngbTooltip="Campo obligatorio">*</span>
+                &nbsp;
+                <div
+                  *ngIf="oUser.user_id"
+                  class="custom-control custom-checkbox"
+                  style="display: inline-block"
+                >
+                  <input
+                    class="custom-control-input ng-untouched ng-dirty"
+                    type="checkbox"
+                    [(ngModel)]="oUser.key_change"
+                    name="inp_key_change"
+                    #checkDel
+                    ng-reflect-name="inp_key_change"
+                    ng-reflect-is-disabled="true"
+                    ng-reflect-model="true"
+                    id="inp_key_change"
+                  />
+                  <label class="custom-control-label" for="inp_key_change">
+                    Cambiar
+                  </label>
+                </div>
+              </label>
+              <input
+                #inp_clave="ngModel"
+                autocomplete="new-password"
+                name="inp_clave"
+                class="form-control"
+                [(ngModel)]="oUser.key"
+                type="password"
+                required="oUser.key_change"
+                [pattern]="seguridad.seguridad_expreg"
+                [disabled]="!oUser.key_change"
+                (keyup)="oUser.repeatKey = ''"
+              />
+              <div
+                *ngIf="inp_clave.invalid && (inp_clave.dirty || inp_clave.touched)"
+                class="alert-form"
+              >
+                <ul>
+                  <li *ngIf="inp_clave.errors['required']">
+                    El campo es requerido.
+                  </li>
+                  <li *ngIf="inp_clave.errors['pattern']">
+                    La clave debe contener por lo menos
+                    <div
+                      [innerHTML]="seguridad.seguridad_detalle | ohSafeHtml"
+                    ></div>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group col-6 col-sm-4 col-md-3 col-lg-3">
+              <label
+                >Repetir clave
+                <span class="text-danger" ngbTooltip="Campo obligatorio"
+                  >*</span
+                ></label
+              >
+              <input
+                #inp_repeatKey="ngModel"
+                autocomplete="new-password"
+                name="inp_repeatKey"
+                class="form-control"
+                [(ngModel)]="oUser.repeatKey"
+                type="password"
+                required="oUser.editar_id"
+                ohValidateEqual="inp_clave"
+                [disabled]="!oUser.key_change"
+              />
+              <div
+                *ngIf="inp_repeatKey.invalid && (inp_repeatKey.dirty || inp_repeatKey.touched)"
+                class="alert-form"
+              >
+                <ul>
+                  <li *ngIf="inp_repeatKey.errors['required']">
+                    El campo es requerido.
+                  </li>
+                  <li *ngIf="!inp_repeatKey.errors['validateEqual']">
+                    Debes repetir la misma clave.
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+              <label
+                >Nombres
+                <span class="text-danger" ngbTooltip="Campo obligatorio"
+                  >*</span
+                ></label
+              >
+              <input
+                #inp_names="ngModel"
+                name="inp_names"
+                class="form-control"
+                [(ngModel)]="oUser.names"
+                [ohInputFormat]="'upper'"
+                type="text"
+                required="true"
+                minlength="2"
+                maxlength="100"
+              />
+              <div
+                *ngIf="inp_names.invalid && (inp_names.dirty || inp_names.touched)"
+                class="alert-form"
+              >
+                <ul>
+                  <li *ngIf="inp_names.errors['required']">
+                    El campo es requerido.
+                  </li>
+                  <li *ngIf="inp_names.errors['minlength']">
+                    El campo debe tener como mínimo 2 caracteres.
+                  </li>
+                  <li *ngIf="inp_names.errors['maxlength']">
+                    El campo debe tener como máximo 100 caracteres.
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+              <label
+                >Apellido paterno
+                <span class="text-danger" ngbTooltip="Campo obligatorio"
+                  >*</span
+                ></label
+              >
+              <input
+                #inp_last_name="ngModel"
+                name="inp_last_name"
+                class="form-control"
+                [(ngModel)]="oUser.last_name"
+                [ohInputFormat]="'upper'"
+                type="text"
+                required="true"
+                minlength="2"
+                maxlength="100"
+              />
+              <div
+                *ngIf="inp_last_name.invalid && (inp_last_name.dirty || inp_last_name.touched)"
+                class="alert-form"
+              >
+                <ul>
+                  <li *ngIf="inp_last_name.errors['required']">
+                    El campo es requerido.
+                  </li>
+                  <li *ngIf="inp_last_name.errors['minlength']">
+                    El campo debe tener como mínimo 2 caracteres.
+                  </li>
+                  <li *ngIf="inp_last_name.errors['maxlength']">
+                    El campo debe tener como máximo 100 caracteres.
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+              <label>Apellido materno</label>
+              <input
+                #inp_mother_last_name="ngModel"
+                name="inp_mother_last_name"
+                class="form-control"
+                [(ngModel)]="oUser.mother_last_name"
+                [ohInputFormat]="'upper'"
+                type="text"
+                minlength="2"
+                maxlength="100"
+              />
+              <div
+                *ngIf="inp_mother_last_name.invalid && (inp_mother_last_name.dirty || inp_mother_last_name.touched)"
+                class="alert-form"
+              >
+                <ul>
+                  <li *ngIf="inp_mother_last_name.errors['minlength']">
+                    El campo debe tener como mínimo 2 caracteres.
+                  </li>
+                  <li *ngIf="inp_mother_last_name.errors['maxlength']">
+                    El campo debe tener como máximo 100 caracteres.
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div class="form-group col-12 col-sm-3 col-md-3 col-lg-3">
+              <label
+                >Estado
+                <span class="text-danger" ngbTooltip="Campo obligatorio"
+                  >*</span
+                ></label
+              >
+              <div>
+                <div
+                  class="btn-group btn-group-toggle"
+                  ngbRadioGroup
+                  name="inp_estado"
+                  #inp_estado="ngModel"
+                  required="true"
+                  [(ngModel)]="oUser.active"
+                >
+                  <label ngbButtonLabel class="btn-outline-success">
+                    <input
+                      ngbButton
+                      type="radio"
+                      [value]="cse.params.data_activo['1'].value"
+                    />
+                    Activo
+                  </label>
+                  <label ngbButtonLabel class="btn-outline-danger">
+                    <input
+                      ngbButton
+                      type="radio"
+                      [value]="cse.params.data_activo['0'].value"
+                    />
+                    Inactivo
+                  </label>
+                </div>
+              </div>
+            </div>
+            <!-- <div
+              class="form-group col-12 col-sm-9 col-md-9 col-lg-9"
+              *ngIf="dataInit && dataInit.rol"
+            >
+              <label>Rol</label>
+              <div>
+                <input
+                  type="hidden"
+                  [(ngModel)]="oUser.roles"
+                  name="inp_roles"
+                  [required]="true"
+                />
+                <div class="btn-group btn-group-toggle">
+                  <label
+                    class="btn-outline-primary"
+                    ngbButtonLabel
+                    *ngFor="let roles of dataInit.rol"
+                  >
+                    <input
+                      type="checkbox"
+                      ngbButton
+                      [(ngModel)]="roles['selected']"
+                      name="inp_rol_{{roles.rol_id}}"
+                      #inp_rol="ngModel"
+                      (change)="rolSelect()"
+                    />
+                    {{roles.rol_name}}
+                  </label>
+                </div>
+              </div>
+            </div> -->
+          </ng-template>
+        </div>
+      </form>
+    </div>
+    <div class="card-footer" *ngIf="flag_checked">
+      <!-- <button
+        (click)="save()"
+        [disabled]="frmUsuario.invalid"
+        class="btn btn-primary mr-1"
+      >
+        <i class="far fa-hand-pointer mr-1"></i>Grabar
+      </button> -->
+      <!-- <button (click)="close()" class="btn btn-outline-primary">
+        <i class="fas fa-times-circle mr-1"></i> Cerrar
+      </button> -->
+    </div>
+  </div>
+</div>
