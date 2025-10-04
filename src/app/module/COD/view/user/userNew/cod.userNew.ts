@@ -14,7 +14,7 @@ declare var AesUtil: any;
 export class UserNew extends CODBase implements OnInit, AfterViewInit, OnDestroy {
   private mAIUserService: MAIUserServiceJPO;
 
-  @Input() system_prefix: string = 'DOC';
+  @Input() system_prefix: string = 'COD';
   @Input() company_id: number = 144;
 
   dataInit?: /* Datainit | pSeguserManageInitGet */ any;
@@ -89,6 +89,7 @@ export class UserNew extends CODBase implements OnInit, AfterViewInit, OnDestroy
           system_prefix: this.system_prefix
         },
         (resp) => {
+          console.log('resp:', resp)
           resolve(resp);
         }
       );
@@ -230,7 +231,8 @@ export class UserNew extends CODBase implements OnInit, AfterViewInit, OnDestroy
           ? new AesUtil(this.cse.cseShared.key_send).encrypt(this.oUser.key)
           : null,
         key_change: this.oUser.key_change ? '1' : '0',
-        email: this.oUser.email,
+        // email: this.oUser.email,
+        email: this.oUser.id,
         names: this.oUser.names,
         last_name: this.oUser.last_name,
         mother_last_name: this.oUser.mother_last_name,
