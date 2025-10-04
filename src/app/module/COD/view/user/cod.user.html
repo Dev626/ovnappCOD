@@ -1,1 +1,276 @@
-Hola Mundo
+<div class="container-fluid">
+  <div class="card shadow mb-4">
+    <div class="card-header py-3">
+      <h6 class="m-0 font-weight-bold text-primary">Lista de Clientes</h6>
+      <div class="btn-header-card">
+        <button class="btn btn-primary mr-1" [routerLink]="'new'">
+          <i class="fas fa-plus fa-sm"></i> Nuevo
+        </button>
+      </div>
+    </div>
+    <div class="card-body">
+      <oh-filterTab
+        *ngIf="roles"
+        [save]="'mai_user_list'"
+        [(filter)]="filterClient"
+        [template]="modalFilter"
+        [length]="lUsers.length"
+        [obj_pagin]="pagin"
+        (list)="seguserManageList()"
+      ></oh-filterTab>
+      
+      <div class="row mt-2">
+        <div 
+            class="col-12 col-md-6 col-lg-4 mb-4" 
+            *ngFor="let item of lUsers"
+        >
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-white border-bottom d-flex align-items-center">
+                    <h5 class="card-title mb-0 text-truncate">
+                        {{ item.names + ' ' + item.last_name + ' ' + (item.mother_last_name ? item.mother_last_name : '') }}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text mb-2">
+                        <strong class="text-muted d-block">Alias/ID:</strong> 
+                        {{ item.id }}
+                        <span *ngIf="item.id != item.email" class="d-block text-sm text-info">{{ item.email }}</span>
+                    </p>
+                    <p class="card-text mb-2">
+                        <strong class="text-muted d-block">Rol(es):</strong>
+                        <span 
+                            *ngFor="let rol of item.roles" 
+                            class="badge badge-secondary mr-1 mt-1"
+                        >
+                            {{ rol.rol_name }}
+                        </span>
+                    </p>
+                    
+                    <hr class="my-3">
+                    <div class="d-flex justify-content-between align-items-center text-sm">
+                        <div>
+                            <strong class="text-muted d-block">Estado:</strong>
+                            <span 
+                                *ngIf="item.active == '1'" 
+                                class="badge badge-success"
+                            >
+                                <i class="fas fa-thumbs-up mr-1"></i> Activo
+                            </span>
+                            <span 
+                                *ngIf="item.active == '0'" 
+                                class="badge badge-danger"
+                            >
+                                <i class="fas fa-thumbs-down mr-1"></i> Inactivo
+                            </span>
+                        </div>
+                        <div class="text-right">
+                            <strong class="text-muted d-block">Registro:</strong>
+                            <small class="text-nowrap">
+                                {{ item.registration_date | ohDate: cse.config.formatShortDateTime }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer d-flex justify-content-end bg-light border-top">
+                    <a 
+                        [routerLink]="['edit', item.user_id]" 
+                        class="btn btn-sm btn-outline-primary"
+                        title="Editar Usuario"
+                    >
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <a 
+                        [routerLink]="['userDocument', item.user_id]" 
+                        class="btn btn-sm btn-outline-info ml-2"
+                        title="Ver Detalles"
+                    >
+                        <i class="fas fa-eye"></i> Documentos
+                    </a>
+                </div>
+            </div>
+        </div>
+      </div>
+
+      <!-- <div class="table-responsive">
+        <table class="table table-bordered dataTable" cellspacing="0">
+          <thead>
+            <tr role="row">
+              <th scope="col" style="width: 1rem">
+                <i
+                  title="Editar"
+                  class="text-muted text-size-10 fas fas fa-edit"
+                ></i>
+              </th>
+              <th>Nombres</th>
+              <th>Alias/Correo</th>
+              <th>Rol(es)</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of lUsers">
+              <td>
+                <a
+                  class="text-size-10 text-success"
+                  [routerLink]="['edit', item.user_id]"
+                  ><i class="fas fas fa-edit"></i
+                ></a>
+              </td>
+              <td>
+                {{item.names+' '+item.last_name+'
+                '+(item.mother_last_name?item.mother_last_name:'')}}
+              </td>
+              <td>
+                {{item.id}}<span *ngIf="item.id != item.email"
+                  ><br />{{item.email}}</span
+                >
+              </td>
+              <td>
+                <table>
+                  <tr *ngFor="let rol of item.roles">
+                    <td>{{rol.rol_name}}</td>
+                  </tr>
+                </table>
+              </td>
+              <td>
+                <span
+                  *ngIf="item.active == '1'"
+                  class="badge badge-pill badge-success"
+                >
+                  <span class="mr-1">
+                    <i class="fas fa-thumbs-up"></i>
+                  </span>
+                  <span>Activo</span>
+                </span>
+                <span
+                  *ngIf="item.active == '0'"
+                  class="badge badge-pill badge-danger"
+                >
+                  <span class="mr-1">
+                    <i class="fas fa-thumbs-down"></i>
+                  </span>
+                  <span>Inactivo</span>
+                </span>
+              </td>
+              <td>
+                <oh-thumbnail
+                  [id]="item.user_registration_id"
+                  [name]="item.user_registration_name"
+                  [lastName]="item.user_registration_lastname"
+                ></oh-thumbnail>
+              </td>
+              <td>
+                {{item.registration_date | ohDate:
+                cse.config.formatShortDateTime}}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div> -->
+
+    </div>
+  </div>
+</div>
+<ng-template #modalFilter let-c="close" let-d="dismiss">
+  <div class="modal-header">
+    <span class="h5 m-0"><i class="fa fa-filter mr-1"></i>Filtrar</span>
+    <a
+      href="#"
+      class="close text-dark"
+      aria-label="Close"
+      (click)="$event.preventDefault(); d('Cross click')"
+    >
+      <i class="fas fa-times fa-xs"></i>
+    </a>
+  </div>
+  <div class="modal-body">
+    <form #frmFiltro="ngForm" class="form-enable">
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Usuario id</label>
+        <div class="col-sm-10">
+          <input
+            name="id"
+            class="form-control"
+            [(ngModel)]="filterClient.field.user_id.value"
+            type="number"
+            (keyup.enter)="c('doFilter')"
+            [(placeholder)]="filterClient.field.user_id.label"
+          />
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">ID</label>
+        <div class="col-sm-10">
+          <input
+            name="id"
+            class="form-control"
+            [(ngModel)]="filterClient.field.id.value"
+            type="text"
+            (keyup.enter)="c('doFilter')"
+            [(placeholder)]="filterClient.field.id.label"
+          />
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Correo</label>
+        <div class="col-sm-10">
+          <input
+            name="id"
+            class="form-control"
+            [(ngModel)]="filterClient.field.email.value"
+            type="text"
+            (keyup.enter)="c('doFilter')"
+            [(placeholder)]="filterClient.field.email.label"
+          />
+        </div>
+      </div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Nombres</label>
+        <div class="col-sm-10">
+          <input
+            name="id"
+            class="form-control"
+            [(ngModel)]="filterClient.field.fullname.value"
+            type="text"
+            (keyup.enter)="c('doFilter')"
+            [(placeholder)]="filterClient.field.fullname.label"
+          />
+        </div>
+      </div>
+      <!-- <div class="form-group row">
+        <label class="col-sm-2 col-form-label">Rol(es)</label>
+        <div class="col-sm-10">
+          <div class="btn-group btn-group-toggle">
+            <label
+              class="btn-outline-primary"
+              ngbButtonLabel
+              *ngFor="let roles of roles"
+            >
+              <input
+                type="checkbox"
+                ngbButton
+                [(ngModel)]="roles['selected']"
+                name="inp_rol_{{roles.rol_id}}"
+                #inp_rol="ngModel"
+                (change)="rolSelect()"
+              />
+              {{roles.rol_name}}
+            </label>
+          </div>
+        </div>
+      </div> -->
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-outline-dark" (click)="c('cancel')">
+      <i aria-hidden="true" class="fas fa-times-circle mr-1"></i>Cancelar
+    </button>
+    <button
+      type="submit"
+      class="btn btn-outline-primary"
+      (click)="c('doFilter')"
+    >
+      <i aria-hidden="true" class="fa fa-filter"></i>Filtrar
+    </button>
+  </div>
+</ng-template>

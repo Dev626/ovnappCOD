@@ -1,13 +1,13 @@
-import { Component, AfterViewInit, OnInit, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
+import { Component, AfterViewInit, OnInit, OnDestroy, ViewChild, TemplateRef, Input } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { NgbModal, NgbModalRef } from '@ng-bootstrap/ng-bootstrap';
 
-import { CoreService, ohLoadSubModule, OHService } from '@ovenfo/framework';
+import { CoreService, OHService } from '@ovenfo/framework';
 import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
-import { MNGDocumentServiceJPO, pMngdocumentGet, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
+import { MNGDocumentServiceJPO, pMngdocumentList, pMngdocumentRegister } from '../../service/mng.mNGDocumentService';
 import { MNGDocumentFileService } from '../../service/mng.mNGDocumentFileService';
-import { ADMCatalogoServiceJPO, pGescatalogoListarAll, pGescatalogoObtener } from '@ovenfo/moduleadm';
+import { ADMCatalogoServiceJPO, pGescatalogoListarAll } from '@ovenfo/moduleadm';
 
 export interface DocumentModel {
 	id: number;
@@ -26,7 +26,6 @@ export interface DocumentModel {
 	user_registration_lastname?: string;
 }
 
-
 export interface DocumentFilter {
 	title?: string;
 	type?: string;
@@ -35,17 +34,19 @@ export interface DocumentFilter {
 	dateTo?: Date;
 }
 
-
 export interface NewDocument {
 	title: string;
 	type: string;
 }
 
 @Component({
+  selector: 'document-list',
 	templateUrl: './cod.document.html',
   styleUrls: ['./cod.document.css']
 })
 export class Document extends CODBase implements OnInit, AfterViewInit, OnDestroy {
+
+  @Input() userid?: number;
 
 	/* servicio */
 	private mNGDocumentService: MNGDocumentServiceJPO
@@ -71,7 +72,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 	filterData: DocumentFilter = {};
 
-document_id: number
+  document_id: number
 	newDocument: any = {}
 	selectedFile: File | null = null;
 	selectedFileName: string = '';
@@ -84,278 +85,271 @@ document_id: number
 	private currentBlobUrl: string | null = null;
 
 
-filterModalRef: NgbModalRef | undefined;
-newDocumentModalRef: NgbModalRef | undefined;
-pdfPreviewModalRef: NgbModalRef | undefined;
+  filterModalRef: NgbModalRef | undefined;
+  newDocumentModalRef: NgbModalRef | undefined;
+  pdfPreviewModalRef: NgbModalRef | undefined;
 
-	constructor(
-		private ohService: OHService,
-		public override cse: CoreService,
-		public override ccs: CODCoreService,
-		private sanitizer: DomSanitizer,
-		private modalService: NgbModal,
-		private fileService: MNGDocumentFileService
-	) {
-		super(ohService, cse, ccs);
+    constructor(
+      private ohService: OHService,
+      public override cse: CoreService,
+      public override ccs: CODCoreService,
+      private sanitizer: DomSanitizer,
+      private modalService: NgbModal,
+      private fileService: MNGDocumentFileService,
+    ) {
+      super(ohService, cse, ccs);
 
-		/* servicio */
-		this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
-		this.aDMCatalogoService = new ADMCatalogoServiceJPO(ohService)
-		this.mNGDocumentFileService = fileService;
-		this.mngdocumentList();
+      /* servicio */
+      this.mNGDocumentService = new MNGDocumentServiceJPO(ohService)
+      this.aDMCatalogoService = new ADMCatalogoServiceJPO(ohService)
+      this.mNGDocumentFileService = fileService;
 
-// console.log('Tiene rol?', this.cse.tieneRol([this.ccs.config.rol_kudo.approver]));
-// console.log('Roles del usuario:', this.cse.data.user.data.roles);
-// console.log('Rol buscado:', this.ccs.config.rol_kudo.submitter);
-// console.log(cse.tieneRol(['cod_doc_approver']))
-//console.log(cse.data.user.data.userid)
+  // console.log('Tiene rol?', this.cse.tieneRol([this.ccs.config.rol_kudo.approver]));
+  // console.log('Roles del usuario:', this.cse.data.user.data.roles);
+  // console.log('Rol buscado:', this.ccs.config.rol_kudo.submitter);
+  // console.log(cse.tieneRol(['cod_doc_approver']))
+  //console.log(cse.data.user.data.userid)
 
-		this.pagin = {
-			page: 1,
-			total: 0,
-			size_rows: 10,
-		}
-	}
+      this.pagin = {
+        page: 1,
+        total: 0,
+        size_rows: 10,
+      }
+    }
 
+    ngOnInit() {
+      this.mngdocumentList();
+      /* Cargar documentos desde el servicio */
+    }
 
+    ngAfterViewInit() {
+      /* catalogo */
+      this.gescatalogoObtener();
+    }
 
-	ngOnInit() {
-		/* Cargar documentos desde el servicio */
-	}
+    ngOnDestroy() {
+      this.closeAllModals();
+      // Limpiar recursos de blob si existen
+      this.cleanupPdfPreview();
+    }
 
-	ngAfterViewInit() {
-		/* catalogo */
-    this.gescatalogoObtener();
-	}
+    gescatalogoObtener() {
+      this.aDMCatalogoService.gescatalogoListarAll({
+        catalogos_id: '[62471]'
+      }, (resp: pGescatalogoListarAll[]) => {
+        this.catalogo = this.convertirCatalogos(resp);
+      });
+    }
 
-	ngOnDestroy() {
-		this.closeAllModals();
-		// Limpiar recursos de blob si existen
-		this.cleanupPdfPreview();
-	}
+    convertirCatalogos(data: any[]) {
+      return data
+        .filter(item => item.catalogo_padre_id !== null) // ignorar los padres raíz
+        .map(item => ({
+          catalog_parent_alias: item.catalog_parent_alias,
+          catalogo_id: item.catalogo_id,
+          alias: item.alias,
+          descripcion: item.descripcion,
+          catalogo_padre_id: item.catalogo_padre_id,
+          descricion_larga: item.descricion_larga,
+          estado: item.estado,
+          id: String(item.catalogo_id)
+        }));
+    }
 
-	gescatalogoObtener() {
-		this.aDMCatalogoService.gescatalogoListarAll({
-      catalogos_id: '[62471]'
-		}, (resp: pGescatalogoListarAll[]) => {
-      this.catalogo = this.convertirCatalogos(resp);
-		});
-	}
+    saveFile(document_id: number): void {
+      this.fileService.downloadFileDirect(document_id);
+    }
 
-  convertirCatalogos(data: any[]) {
-    return data
-      .filter(item => item.catalogo_padre_id !== null) // ignorar los padres raíz
-      .map(item => ({
-        catalog_parent_alias: item.catalog_parent_alias,
-        catalogo_id: item.catalogo_id,
-        alias: item.alias,
-        descripcion: item.descripcion,
-        catalogo_padre_id: item.catalogo_padre_id,
-        descricion_larga: item.descricion_larga,
-        estado: item.estado,
-        id: String(item.catalogo_id)
-      }));
+    /* servicio - Listar documentos */
+    mngdocumentList() {
+      // Determinar si es approver o submitter
+      const isApprover = this.cse.tieneRol([this.ccs.config.rol_kudo.approver]);
+      const isSubmitter = this.cse.tieneRol([this.ccs.config.rol_kudo.submitter]);
+
+      // Crear el objeto de parámetros base
+      let params: any = {
+          // pf_page : 0, // Optional
+          // pf_size : 0 // Optional
+      };
+
+      // Si es SUBMITTER (o tiene ambos roles), filtrar por su userid
+      if (isSubmitter) {
+          params.created_by = this.cse.data.user.data.userid;
+          // console.log('Filtrando como SUBMITTER - UserID:', params.created_by);
+      }
+
+      // Si es APPROVER solo (sin submitter), no enviar created_by para traer todos
+      if (isApprover && !isSubmitter) {
+          params.created_by = this.userid;
+          // console.log('Cargando todos los documentos (APPROVER)');
+          // No agregar created_by para traer todos los registros
+      }
+
+      // Si no tiene ningún rol válido, igual filtrar por su userid para no mostrar nada
+      if (!isApprover && !isSubmitter) {
+          params.created_by = -1; // ID inexistente para no traer nada
+          // console.log('Usuario sin rol válido');
+      }
+
+      // Llamar al servicio con los parámetros
+      this.mNGDocumentService.mngdocumentList(params, (resp: pMngdocumentList) => {
+          this.pagin.total = resp.response;
+          this.ldocuments = resp.documents;
+          // console.log('Documentos cargados:', this.ldocuments.length);
+          // console.log('Respuesta completa:', resp);
+      });
   }
 
-  saveFile(document_id: number): void {
-    this.fileService.downloadFileDirect(document_id);
+  //    /**
+  //  * Obtiene los datos completos de un documento por su ID
+  //  */
+  // mngdocumentGet(documentId: number): void {
+  //     console.log('=== Llamando mngdocumentGet con ID:', documentId);
+
+  //     this.mNGDocumentService.mngdocumentGet({
+  //         document_id: documentId
+  //     }, (resp: pMngdocumentGet) => {
+  //         console.log('=== Respuesta completa:', resp);
+  //         console.log('=== Tipo de resp:', typeof resp);
+  //         console.log('=== Keys de resp:', Object.keys(resp));
+
+  //         // Intenta acceder de diferentes formas
+  //         if (resp) {
+  //             this.loadDocumentForEdit(resp); // Prueba pasando resp directamente
+  //         } else {
+  //             alert('No se pudo cargar el documento');
+  //         }
+  //     })
+  // }
+
+  /**
+   * Abre el modal de edición y carga los datos del documento
+   */
+  /**
+   * Abre el modal de edición con los datos del item del listado
+   */
+  openEditDocumentModal(item: any): void {
+      // console.log('=== Item recibido para editar:', item);
+
+      // Cargar los datos directamente desde el item del listado
+      this.newDocument = {
+          document_id: item.document_id,
+          title: item.title,
+          type: item.document_type?.toString(),
+          comment: item.comment || '',
+          file_name: item.file_name,
+          file_path: item.file_path,
+          status: item.status,
+          created_by: item.created_by,
+          created_at: item.created_at
+      };
+
+      this.selectedFileName = item.file_name || '';
+      this.selectedFile = null; // Limpiar archivo seleccionado
+
+      // console.log('=== newDocument cargado:', this.newDocument);
+
+      // Abrir el modal de edición
+      this.newDocumentModalRef = this.modalService.open(this.modalNewDocument, {
+          size: 'lg',
+          backdrop: 'static'
+      });
+
+      this.newDocumentModalRef.result.then((result: string) => {
+          if (result === 'update') {
+              // console.log('Modal cerrado con update');
+          }
+      }).catch(() => {
+          this.resetNewDocumentForm();
+      });
   }
 
-	/* servicio - Listar documentos */
-	mngdocumentList() {
-    // Determinar si es approver o submitter
-    const isApprover = this.cse.tieneRol([this.ccs.config.rol_kudo.approver]);
-    const isSubmitter = this.cse.tieneRol([this.ccs.config.rol_kudo.submitter]);
+  /**
+   * Actualiza un documento existente
+   */
+  updateDocument(): void {
+      if (!this.newDocument.title || !this.newDocument.type) {
+          alert('Por favor complete todos los campos obligatorios');
+          return;
+      }
 
-    // Crear el objeto de parámetros base
-    let params: any = {
-        // pf_page : 0, // Optional
-        // pf_size : 0 // Optional
-    };
+      // Formatear fecha actual
+      const now = new Date();
+      const updated_at = this.formatDateToDDMMYYYY(now);
 
-    // Si es SUBMITTER (o tiene ambos roles), filtrar por su userid
-    if (isSubmitter) {
-        params.created_by = this.cse.data.user.data.userid;
-        // console.log('Filtrando como SUBMITTER - UserID:', params.created_by);
-    }
+      // Formatear created_at
+      let created_at = this.newDocument.created_at;
+      if (created_at) {
+          const createdDate = new Date(created_at);
+          created_at = this.formatDateToDDMMYYYY(createdDate);
+      }
 
-    // Si es APPROVER solo (sin submitter), no enviar created_by para traer todos
-    if (isApprover && !isSubmitter) {
-        // console.log('Cargando todos los documentos (APPROVER)');
-        // No agregar created_by para traer todos los registros
-    }
+      // Preparar campos para actualizar
+      const fields: any = {
+          document_id: this.newDocument.document_id,
+          title: this.newDocument.title,
+          document_type: parseInt(this.newDocument.type),
+          status: this.newDocument.status,
+          updated_by: this.cse.data.user.data.userid,
+          updated_at: updated_at
+      };
 
-    // Si no tiene ningún rol válido, igual filtrar por su userid para no mostrar nada
-    if (!isApprover && !isSubmitter) {
-        params.created_by = -1; // ID inexistente para no traer nada
-        // console.log('Usuario sin rol válido');
-    }
+      // Solo agregar campos si tienen valor
+      if (this.newDocument.file_name) fields.file_name = this.newDocument.file_name;
+      if (this.newDocument.file_path) fields.file_path = this.newDocument.file_path;
+      if (this.newDocument.comment) fields.comment = this.newDocument.comment;
+      if (this.newDocument.created_by) fields.created_by = this.newDocument.created_by;
+      if (created_at) fields.created_at = created_at;
 
-    // Llamar al servicio con los parámetros
-    this.mNGDocumentService.mngdocumentList(params, (resp: pMngdocumentList) => {
-        this.pagin.total = resp.response;
-        this.ldocuments = resp.documents;
-        // console.log('Documentos cargados:', this.ldocuments.length);
-        // console.log('Respuesta completa:', resp);
-    });
-}
+      // Preparar archivos (si se seleccionó uno nuevo)
+      const files: any = {};
+      if (this.selectedFile) {
+          files.document_file = this.selectedFile;
+      }
 
+      const loading = { value: false };
 
+      // console.log('Actualizando documento...', fields);
 
+      // Llamar al servicio de edición
+      this.mNGDocumentService.mngdocumentEdit(
+          fields,
+          files,
+          loading,
+          (resp) => {
+              // console.log('Respuesta del servidor:', resp);
 
-//    /**
-//  * Obtiene los datos completos de un documento por su ID
-//  */
-// mngdocumentGet(documentId: number): void {
-//     console.log('=== Llamando mngdocumentGet con ID:', documentId);
-
-//     this.mNGDocumentService.mngdocumentGet({
-//         document_id: documentId
-//     }, (resp: pMngdocumentGet) => {
-//         console.log('=== Respuesta completa:', resp);
-//         console.log('=== Tipo de resp:', typeof resp);
-//         console.log('=== Keys de resp:', Object.keys(resp));
-
-//         // Intenta acceder de diferentes formas
-//         if (resp) {
-//             this.loadDocumentForEdit(resp); // Prueba pasando resp directamente
-//         } else {
-//             alert('No se pudo cargar el documento');
-//         }
-//     })
-// }
-
-/**
- * Abre el modal de edición y carga los datos del documento
- */
-/**
- * Abre el modal de edición con los datos del item del listado
- */
-openEditDocumentModal(item: any): void {
-    // console.log('=== Item recibido para editar:', item);
-
-    // Cargar los datos directamente desde el item del listado
-    this.newDocument = {
-        document_id: item.document_id,
-        title: item.title,
-        type: item.document_type?.toString(),
-        comment: item.comment || '',
-        file_name: item.file_name,
-        file_path: item.file_path,
-        status: item.status,
-        created_by: item.created_by,
-        created_at: item.created_at
-    };
-
-    this.selectedFileName = item.file_name || '';
-    this.selectedFile = null; // Limpiar archivo seleccionado
-
-    // console.log('=== newDocument cargado:', this.newDocument);
-
-    // Abrir el modal de edición
-    this.newDocumentModalRef = this.modalService.open(this.modalNewDocument, {
-        size: 'lg',
-        backdrop: 'static'
-    });
-
-    this.newDocumentModalRef.result.then((result: string) => {
-        if (result === 'update') {
-            // console.log('Modal cerrado con update');
-        }
-    }).catch(() => {
-        this.resetNewDocumentForm();
-    });
-}
+              if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
+                  this.ohService.getOH().getAd().success(resp.resp_message || 'Documento actualizado correctamente');
 
 
+                  // Limpiar formulario y cerrar modal
+                  this.resetNewDocumentForm();
+                  if (this.newDocumentModalRef) {
+                      this.newDocumentModalRef.close('update');
+                  }
 
-/**
- * Actualiza un documento existente
- */
-updateDocument(): void {
-    if (!this.newDocument.title || !this.newDocument.type) {
-        alert('Por favor complete todos los campos obligatorios');
-        return;
-    }
+                  // Recargar lista
+                  this.mngdocumentList();
+              } else {
+                  this.ohService.getOH().getAd().error(resp.resp_message || 'Error al actualizar el documento');
+              }
+          },
+          (error) => {
+              this.ohService.getOH().getAd().error('Ocurrió un error al actualizar el documento');
+          }
+      );
+  }
 
-    // Formatear fecha actual
-    const now = new Date();
-    const updated_at = this.formatDateToDDMMYYYY(now);
-
-    // Formatear created_at
-    let created_at = this.newDocument.created_at;
-    if (created_at) {
-        const createdDate = new Date(created_at);
-        created_at = this.formatDateToDDMMYYYY(createdDate);
-    }
-
-    // Preparar campos para actualizar
-    const fields: any = {
-        document_id: this.newDocument.document_id,
-        title: this.newDocument.title,
-        document_type: parseInt(this.newDocument.type),
-        status: this.newDocument.status,
-        updated_by: this.cse.data.user.data.userid,
-        updated_at: updated_at
-    };
-
-    // Solo agregar campos si tienen valor
-    if (this.newDocument.file_name) fields.file_name = this.newDocument.file_name;
-    if (this.newDocument.file_path) fields.file_path = this.newDocument.file_path;
-    if (this.newDocument.comment) fields.comment = this.newDocument.comment;
-    if (this.newDocument.created_by) fields.created_by = this.newDocument.created_by;
-    if (created_at) fields.created_at = created_at;
-
-    // Preparar archivos (si se seleccionó uno nuevo)
-    const files: any = {};
-    if (this.selectedFile) {
-        files.document_file = this.selectedFile;
-    }
-
-    const loading = { value: false };
-
-    // console.log('Actualizando documento...', fields);
-
-    // Llamar al servicio de edición
-    this.mNGDocumentService.mngdocumentEdit(
-        fields,
-        files,
-        loading,
-        (resp) => {
-            // console.log('Respuesta del servidor:', resp);
-
-            if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
-                this.ohService.getOH().getAd().success(resp.resp_message || 'Documento actualizado correctamente');
-
-
-                // Limpiar formulario y cerrar modal
-                this.resetNewDocumentForm();
-                if (this.newDocumentModalRef) {
-                    this.newDocumentModalRef.close('update');
-                }
-
-                // Recargar lista
-                this.mngdocumentList();
-            } else {
-                this.ohService.getOH().getAd().error(resp.resp_message || 'Error al actualizar el documento');
-            }
-        },
-        (error) => {
-            this.ohService.getOH().getAd().error('Ocurrió un error al actualizar el documento');
-        }
-    );
-}
-
-/**
- * Formatea una fecha al formato dd/MM/yyyy
- */
-private formatDateToDDMMYYYY(date: Date): string {
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    return `${day}/${month}/${year}`;
-}
-
+  /**
+   * Formatea una fecha al formato dd/MM/yyyy
+   */
+  private formatDateToDDMMYYYY(date: Date): string {
+      const day = String(date.getDate()).padStart(2, '0');
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const year = date.getFullYear();
+      return `${day}/${month}/${year}`;
+  }
 
 	loadDocuments(): void {
 		// Este método ya no es necesario porque cargamos desde el servicio
@@ -377,7 +371,6 @@ private formatDateToDDMMYYYY(date: Date): string {
 			doc.createdBy.toLowerCase().includes(term)
 		);
 	}
-
 
 	applyAdvancedFilters(): void {
 		this.filteredDocuments = this.documents.filter(doc => {
@@ -407,13 +400,11 @@ private formatDateToDDMMYYYY(date: Date): string {
 		});
 	}
 
-
 	clearFilters(): void {
 		this.filterData = {};
 		this.searchTerm = '';
 		this.filteredDocuments = [...this.documents];
 	}
-
 
 	trackByDocumentId(index: number, doc: DocumentModel): number {
 		return doc.id;
@@ -436,7 +427,6 @@ private formatDateToDDMMYYYY(date: Date): string {
 		});
 	}
 
-
 	openNewDocumentModal(): void {
 		this.resetNewDocumentForm();
 
@@ -454,7 +444,6 @@ private formatDateToDDMMYYYY(date: Date): string {
 		});
 	}
 
-
 	private resetNewDocumentForm(): void {
 		this.newDocument = {
 			title: '',
@@ -463,7 +452,6 @@ private formatDateToDDMMYYYY(date: Date): string {
 		this.selectedFile = null;
 		this.selectedFileName = '';
 	}
-
 
 	onFileSelected(event: any): void {
 		const file = event.target.files[0];
@@ -698,7 +686,7 @@ private formatDateToDDMMYYYY(date: Date): string {
 		this.isLoadingPdf = false;
 	}
 
-		/**
+	/**
 	 * Mapea un item de la lista a DocumentModel para usar en preview/download
 	 */
 	mapToDocumentModel(item: any): DocumentModel {
@@ -730,7 +718,6 @@ private formatDateToDDMMYYYY(date: Date): string {
 		return filepath.split('/').pop() || filepath;
 	}
 
-
 	private formatFileSize(bytes: number): string {
 		if (bytes === 0) return '0 Bytes';
 
@@ -740,7 +727,6 @@ private formatDateToDDMMYYYY(date: Date): string {
 
 		return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 	}
-
 
 	private closeAllModals(): void {
 		if (this.filterModalRef) {
