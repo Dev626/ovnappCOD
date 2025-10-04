@@ -8,7 +8,7 @@
         <!-- <button class="btn btn-outline-secondary btn-sm mr-1" (click)="openFilterModal()">
                     <i class="fas fa-filter fa-sm"></i> Filtrar
                 </button> -->
-        <button class="btn btn-primary mr-1" (click)="openNewDocumentModal()">
+        <button class="btn btn-primary mr-1" (click)="openNewDocumentModal()" *ngIf="cse.tieneRol([ccs.config.rol_kudo.submitter])">
           <i class="fas fa-plus fa-sm"></i> Nuevo Documento
         </button>
       </div>
