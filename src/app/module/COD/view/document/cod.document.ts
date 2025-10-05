@@ -268,7 +268,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
    * Actualiza un documento existente
    */
   updateDocument(): void {
-      if (!this.newDocument.title || !this.newDocument.type) {
+      if ( !this.newDocument.type) {
           alert('Por favor complete todos los campos obligatorios');
           return;
       }
@@ -287,7 +287,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
       // Preparar campos para actualizar
       const fields: any = {
           document_id: this.newDocument.document_id,
-          title: this.newDocument.title,
+          title: null,
           document_type: parseInt(this.newDocument.type),
           status: this.newDocument.status,
           updated_by: this.cse.data.user.data.userid,
@@ -471,7 +471,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 	}
 
 	saveDocument(): void {
-		if (!this.newDocument.title || !this.newDocument.type || !this.selectedFile) {
+		if ( !this.newDocument.type || !this.selectedFile) {
 			console.warn('Complete todos los campos obligatorios');
 			alert('Por favor complete todos los campos obligatorios');
 			return;
@@ -479,7 +479,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 		// Preparar los campos para el servicio
 		const fields = {
-			title: this.newDocument.title,
+			title: null,
 			document_type: parseInt(this.newDocument.type),
 			status: 1, // Estado activo por defecto
 			created_by: this.cse.data.user.data.userid // ID del usuario actual desde CoreService
@@ -932,7 +932,7 @@ approveDocument(item: any, event: Event): void {
 
     // Confirmar el cambio usando el sistema del framework
     this.ohService.getOH().getUtil().confirm(
-        `¿Está seguro de cambiar el estado del documento "${item.title}" a "${newStatusDesc}"?`,
+        `¿Está seguro de cambiar el estado del documento a "${newStatusDesc}"?`,
         () => {
             // Este callback se ejecuta cuando el usuario confirma
             this.updateDocumentStatus(item, newStatus, newStatusDesc);
@@ -987,7 +987,7 @@ removeDocument(item: any, event: Event): void {
 
     // Confirmar el cambio usando el sistema del framework
     this.ohService.getOH().getUtil().confirm(
-        `¿Está seguro de cambiar el estado del documento "${item.title}" a "${newStatusDesc}"? Este es un cambio final.`,
+        `¿Está seguro de cambiar el estado del documento a "${newStatusDesc}"? Este es un cambio final.`,
         () => {
             // Este callback se ejecuta cuando el usuario confirma
             this.updateDocumentStatus(item, newStatus, newStatusDesc);
