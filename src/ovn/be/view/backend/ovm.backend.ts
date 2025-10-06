@@ -52,21 +52,40 @@ export class OVMBackend extends OVMBackendBase implements OnInit {
 
   ngOnInit() {
     const nav = document.querySelector('.topbar>.navbar-nav');
+    const menuContainer = document.querySelector('bes-menu');
     if (nav) {
       const observer = new MutationObserver(() => {
         const elementos = nav.querySelectorAll('li, a, button');
           elementos[0].remove();
           elementos[3].remove();
           observer.disconnect(); // corta la observación
-      });    
+        const spansEnMenu = menuContainer.querySelectorAll('span');
+        if (spansEnMenu.length > 0) {
+          const spanParaEliminar = spansEnMenu[0];
+          //console.log('Eliminando solo el span con texto:', spanParaEliminar.textContent);
+          spanParaEliminar.remove();
+}
+      });
       observer.observe(nav, { childList: true, subtree: true });
     }
+
+    const observer = new MutationObserver((mutations, obs) => {
+    const footerDiv = document.querySelector('div.footer');
+    if (footerDiv) {
+      footerDiv.remove(); // ...lo eliminamos.
+    }
+  });
+
+  observer.observe(document.body, {
+    childList: true,
+    subtree: true
+  });
     this.validOnInit();
   }
 
   // ngAfterViewInit se ejecuta una vez que la vista y sus hijos (incluido objNav) están inicializados.
   ngAfterViewInit() {
-    // Usamos setTimeout para asegurar que la llamada asíncrona de CoreService (si la hay) 
+    // Usamos setTimeout para asegurar que la llamada asíncrona de CoreService (si la hay)
     // ha tenido una oportunidad para terminar de cargar los datos antes de la manipulación.
     // Prueba con 0ms inicialmente, y si sigue sin funcionar, aumenta a 50ms o 100ms.
     setTimeout(() => {
