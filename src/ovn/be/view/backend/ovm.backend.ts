@@ -54,6 +54,7 @@ export class OVMBackend extends OVMBackendBase implements OnInit {
   // Banderas para saber qué tareas ya se completaron
   let menuModificado = false;
   let footerEliminado = false;
+  let tabsEliminados = false;
 
   // UN SOLO OBSERVADOR para controlar todas las modificaciones del DOM
   const domObserver = new MutationObserver((mutations, observer) => {
@@ -90,8 +91,23 @@ export class OVMBackend extends OVMBackendBase implements OnInit {
       }
     }
 
+    // 🆕 TAREA 3: Eliminar tabs 'tabEnvio' y 'tabUnidadNegocio'
+    if (!tabsEliminados) {
+      const tabs = document.querySelectorAll('ul[ngbnav] li[ngbnavitem]');
+      if (tabs.length > 0) {
+        const tabEnvio = document.querySelector('li[ngbnavitem="tabEnvio"]');
+        const tabUnidad = document.querySelector('li[ngbnavitem="tabUnidadNegocio"]');
+        if (tabEnvio || tabUnidad) {
+          console.log("Eliminando tabs...");
+          tabEnvio?.remove();
+          tabUnidad?.remove();
+          tabsEliminados = true;
+        }
+      }
+    }
+
     // Si todas las tareas están completas, nos desconectamos.
-    if (menuModificado && footerEliminado) {
+    if (menuModificado && footerEliminado && tabsEliminados) {
       console.log("Todas las tareas del DOM completadas. Desconectando observador.");
       observer.disconnect();
     }
