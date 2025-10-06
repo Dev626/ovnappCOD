@@ -6,7 +6,7 @@
         <div class="row">
           <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
             <label>Correo (ID de Acceso)</label>
-            <div class="input-group mb-3">
+            <!-- <div class="input-group mb-3">
               <input
                 #inp_id="ngModel"
                 name="inp_id"
@@ -30,7 +30,45 @@
                   <i class="fas fa-search"></i>
                 </button>
               </div>
-            </div>
+            </div> -->
+        <form #userForm="ngForm" (ngSubmit)="seguserManageFindUser()">
+
+  <div class="input-group mb-3">
+    <input
+      #inp_id="ngModel"
+      name="inp_id"
+      type="email"
+      class="form-control"
+      [(ngModel)]="oUser.id"
+      [ohInputFormat]="'upper'"
+      minlength="2"
+      maxlength="100"
+      required
+      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[cC][oO][mM]$"
+      [disabled]="flag_checked"
+      email
+    />
+    <div class="input-group-append" *ngIf="!oUser.user_id">
+      <button
+        class="btn btn-outline-secondary"
+        type="submit"
+        [disabled]="flag_checked || userForm.invalid"
+      >
+        <i class="fas fa-search"></i>
+      </button>
+    </div>
+  </div>
+
+</form>
+
+<div *ngIf="inp_id.invalid && (inp_id.dirty || inp_id.touched)" class="alert alert-danger mt-2">
+  <div *ngIf="inp_id.errors?.['required']">
+    El correo es obligatorio.
+  </div>
+  <div *ngIf="inp_id.errors?.['pattern']">
+    El formato del correo no es válido. Debe ser un correo <strong>.com</strong>.
+  </div>
+</div>
             <div
               *ngIf="inp_id.invalid && (inp_id.dirty || inp_id.touched)"
               class="alert-form"
@@ -47,7 +85,7 @@
             </div>
           </div>
           <ng-template [ngIf]="flag_checked">
-            <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+            <!-- <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
               <label
                 >Nombres
                 <span class="text-danger" ngbTooltip="Campo obligatorio"
@@ -142,8 +180,82 @@
                   </li>
                 </ul>
               </div>
-            </div>
+            </div> -->
+            <div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+  <label>
+    Nombres
+    <span class="text-danger" ngbTooltip="Campo obligatorio">*</span>
+  </label>
+  <input
+    #inp_names="ngModel"
+    name="inp_names"
+    class="form-control"
+    [(ngModel)]="oUser.names"
+    [ohInputFormat]="'upper'"
+    type="text"
+    required
+    minlength="2"
+    maxlength="100"
+    pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+  />
+  <div *ngIf="inp_names.invalid && (inp_names.dirty || inp_names.touched)" class="alert-form">
+    <ul>
+      <li *ngIf="inp_names.errors?.['required']">El campo es requerido.</li>
+      <li *ngIf="inp_names.errors?.['minlength']">El campo debe tener como mínimo 2 caracteres.</li>
+      <li *ngIf="inp_names.errors?.['maxlength']">El campo debe tener como máximo 100 caracteres.</li>
+      <li *ngIf="inp_names.errors?.['pattern']">El campo solo debe contener letras y espacios.</li>
+    </ul>
+  </div>
+</div>
 
+<div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+  <label>
+    Apellido paterno
+    <span class="text-danger" ngbTooltip="Campo obligatorio">*</span>
+  </label>
+  <input
+    #inp_last_name="ngModel"
+    name="inp_last_name"
+    class="form-control"
+    [(ngModel)]="oUser.last_name"
+    [ohInputFormat]="'upper'"
+    type="text"
+    required
+    minlength="2"
+    maxlength="100"
+    pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+  />
+  <div *ngIf="inp_last_name.invalid && (inp_last_name.dirty || inp_last_name.touched)" class="alert-form">
+    <ul>
+      <li *ngIf="inp_last_name.errors?.['required']">El campo es requerido.</li>
+      <li *ngIf="inp_last_name.errors?.['minlength']">El campo debe tener como mínimo 2 caracteres.</li>
+      <li *ngIf="inp_last_name.errors?.['maxlength']">El campo debe tener como máximo 100 caracteres.</li>
+      <li *ngIf="inp_last_name.errors?.['pattern']">El campo solo debe contener letras y espacios.</li>
+    </ul>
+  </div>
+</div>
+
+<div class="form-group col-6 col-sm-6 col-md-6 col-lg-3">
+  <label>Apellido materno</label>
+  <input
+    #inp_mother_last_name="ngModel"
+    name="inp_mother_last_name"
+    class="form-control"
+    [(ngModel)]="oUser.mother_last_name"
+    [ohInputFormat]="'upper'"
+    type="text"
+    minlength="2"
+    maxlength="100"
+    pattern="^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$"
+  />
+  <div *ngIf="inp_mother_last_name.invalid && (inp_mother_last_name.dirty || inp_mother_last_name.touched)" class="alert-form">
+    <ul>
+      <li *ngIf="inp_mother_last_name.errors?.['minlength']">El campo debe tener como mínimo 2 caracteres.</li>
+      <li *ngIf="inp_mother_last_name.errors?.['maxlength']">El campo debe tener como máximo 100 caracteres.</li>
+      <li *ngIf="inp_mother_last_name.errors?.['pattern']">El campo solo debe contener letras y espacios.</li>
+    </ul>
+  </div>
+</div>
             <div class="form-group col-6 col-sm-4 col-md-3 col-lg-3">
               <label
                 >Clave
