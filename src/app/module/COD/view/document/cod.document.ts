@@ -104,11 +104,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
       this.aDMCatalogoService = new ADMCatalogoServiceJPO(ohService)
       this.mNGDocumentFileService = fileService;
 
-  // console.log('Tiene rol?', this.cse.tieneRol([this.ccs.config.rol_kudo.approver]));
-  // console.log('Roles del usuario:', this.cse.data.user.data.roles);
-  // console.log('Rol buscado:', this.ccs.config.rol_kudo.submitter);
-  // console.log(cse.tieneRol(['cod_doc_approver']))
-  //console.log(cse.data.user.data.userid)
+
 
       this.pagin = {
         page: 1,
@@ -175,52 +171,31 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
       // Si es SUBMITTER (o tiene ambos roles), filtrar por su userid
       if (isSubmitter) {
           params.created_by = this.cse.data.user.data.userid;
-          // console.log('Filtrando como SUBMITTER - UserID:', params.created_by);
+
       }
 
       // Si es APPROVER solo (sin submitter), no enviar created_by para traer todos
       if (isApprover && !isSubmitter) {
           params.created_by = this.userid;
-          // console.log('Cargando todos los documentos (APPROVER)');
+
           // No agregar created_by para traer todos los registros
       }
 
       // Si no tiene ningún rol válido, igual filtrar por su userid para no mostrar nada
       if (!isApprover && !isSubmitter) {
           params.created_by = -1; // ID inexistente para no traer nada
-          // console.log('Usuario sin rol válido');
+
       }
 
       // Llamar al servicio con los parámetros
       this.mNGDocumentService.mngdocumentList(params, (resp: pMngdocumentList) => {
           this.pagin.total = resp.response;
           this.ldocuments = resp.documents;
-          // console.log('Documentos cargados:', this.ldocuments.length);
-          // console.log('Respuesta completa:', resp);
+
       });
   }
 
-  //    /**
-  //  * Obtiene los datos completos de un documento por su ID
-  //  */
-  // mngdocumentGet(documentId: number): void {
-  //     console.log('=== Llamando mngdocumentGet con ID:', documentId);
 
-  //     this.mNGDocumentService.mngdocumentGet({
-  //         document_id: documentId
-  //     }, (resp: pMngdocumentGet) => {
-  //         console.log('=== Respuesta completa:', resp);
-  //         console.log('=== Tipo de resp:', typeof resp);
-  //         console.log('=== Keys de resp:', Object.keys(resp));
-
-  //         // Intenta acceder de diferentes formas
-  //         if (resp) {
-  //             this.loadDocumentForEdit(resp); // Prueba pasando resp directamente
-  //         } else {
-  //             alert('No se pudo cargar el documento');
-  //         }
-  //     })
-  // }
 
   /**
    * Abre el modal de edición y carga los datos del documento
@@ -229,7 +204,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
    * Abre el modal de edición con los datos del item del listado
    */
   openEditDocumentModal(item: any): void {
-      // console.log('=== Item recibido para editar:', item);
+
 
       // Cargar los datos directamente desde el item del listado
       this.newDocument = {
@@ -247,7 +222,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
       this.selectedFileName = item.file_name || '';
       this.selectedFile = null; // Limpiar archivo seleccionado
 
-      // console.log('=== newDocument cargado:', this.newDocument);
+
 
       // Abrir el modal de edición
       this.newDocumentModalRef = this.modalService.open(this.modalNewDocument, {
@@ -257,7 +232,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
       this.newDocumentModalRef.result.then((result: string) => {
           if (result === 'update') {
-              // console.log('Modal cerrado con update');
+
           }
       }).catch(() => {
           this.resetNewDocumentForm();
@@ -309,7 +284,6 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
       const loading = { value: false };
 
-      // console.log('Actualizando documento...', fields);
 
       // Llamar al servicio de edición
       this.mNGDocumentService.mngdocumentEdit(
@@ -317,7 +291,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
           files,
           loading,
           (resp) => {
-              // console.log('Respuesta del servidor:', resp);
+
 
               if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
                   this.ohService.getOH().getAd().success(resp.resp_message || 'Documento actualizado correctamente');
@@ -493,20 +467,20 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 		// Variable para controlar el loading
 		const loading = { value: false };
 
-		// console.log('Guardando documento...', fields);
+
 
 		// Llamar al servicio de registro
-		// console.log('files:', files)
+
 		this.mNGDocumentService.mngdocumentRegister(
 			fields,
 			files,
 			loading,
 			(resp: pMngdocumentRegister) => {
-				// console.log('Respuesta del servidor:', resp);
+
 
 				// Verificar si el registro fue exitoso
 				if (resp.resp_result === 1 || resp.resp_result === '1' as any) {
-					// console.log('Documento guardado correctamente');
+
 
 					// Mostrar mensaje de éxito
 					// alert(resp.resp_message || 'Documento registrado exitosamente');
@@ -631,7 +605,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 				// this.pdfPreviewUrl = this.sanitizer.bypassSecurityTrustResourceUrl(this.currentBlobUrl);
 				this.isLoadingPdf = false;
 
-				// console.log('PDF cargado correctamente:', document.fileName);
+
 
         if (this.isMobile()) {
           window.open(this.currentBlobUrl, '_blank');
@@ -801,7 +775,7 @@ export class Document extends CODBase implements OnInit, AfterViewInit, OnDestro
 
 //     const loading = { value: false };
 
-//     console.log('Cambiando estado del documento...', fields);
+
 
 //     this.mNGDocumentService.mngdocumentEdit(
 //         fields,
@@ -872,7 +846,6 @@ private updateDocumentStatus(item: any, newStatus: number, newStatusDesc: string
 
     const loading = { value: false };
 
-    console.log(`Actualizando estado a ${newStatusDesc}...`, fields);
 
     this.mNGDocumentService.mngdocumentEdit(
         fields,
