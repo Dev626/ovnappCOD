@@ -3,7 +3,7 @@ import { Component, AfterViewInit, OnInit, OnDestroy, Input } from '@angular/cor
 import { CoreService, ohLoadSubModule, OHService } from '@ovenfo/framework';
 import { CODCoreService } from 'src/app/module/COD/cod.coreService';
 import { CODBase } from 'src/app/module/COD/cod.base';
-import { MAIUserServiceJPO, pSeguserManageFindUser, pSeguserManageInitGet, pSeguserManageRegister, seguserManageInitGet_configs, seguserManageInitGet_rol, seguserManageList_users } from '../../../service/ind.mAIUserService';
+import { MAIUserServiceJPO, pSeguserManageFindUser, pSeguserManageInitGet, pSeguserManageRegister, seguserManageInitGet_configs } from '../../../service/ind.mAIUserService';
 import { ActivatedRoute, Router } from '@angular/router';
 
 declare var AesUtil: any;
@@ -189,6 +189,7 @@ export class UserNew extends CODBase implements OnInit, AfterViewInit, OnDestroy
 
   rolSelect() {
     let roles = this.dataInit.rol.filter((it) => it['selected'] == true);
+    console.log('roles:', roles)
     if (roles && roles.length > 0) {
       this.oUser.roles = JSON.stringify(roles);
     } else {

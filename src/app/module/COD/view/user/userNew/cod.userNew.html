@@ -383,30 +383,38 @@
               class="form-group col-12 col-sm-9 col-md-9 col-lg-9"
               *ngIf="dataInit && dataInit.rol"
             >
-              <label>Rol</label>
               <div>
-                <input
-                  type="hidden"
-                  [(ngModel)]="oUser.roles"
-                  name="inp_roles"
-                  [required]="true"
-                />
-                <div class="btn-group btn-group-toggle">
-                  <label
-                    class="btn-outline-primary"
-                    ngbButtonLabel
-                    *ngFor="let roles of dataInit.rol"
-                  >
-                    <input
-                      type="checkbox"
-                      ngbButton
-                      [(ngModel)]="roles['selected']"
-                      name="inp_rol_{{roles.rol_id}}"
-                      #inp_rol="ngModel"
-                      (change)="rolSelect()"
-                    />
-                    {{roles.rol_name}}
-                  </label>
+                <div class="col-6">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th scope="col">Rol</th>
+                                <th scope="col" style="width:1rem"><i title="Seleccionar" class="text-muted text-size-10 far fa-check-square"></i></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngFor="let rol of dataInit.rol; let i = index">
+                                <th scope="row">{{rol.rol_name}}</th>
+                                <td>
+                                    <div class="custom-control custom-checkbox">
+                                      <input
+                                        type="checkbox"
+                                        class="custom-control-input"
+                                        id="rolSeleccionar_{{ i }}"
+                                        [(ngModel)]="rol.selected"
+                                        name="inp_rol_{{ rol.rol_id }}"
+                                        #inp_rol="ngModel"
+                                        (change)="rolSelect()"
+                                      />
+                                      <label
+                                        class="custom-control-label cursor-pointer"
+                                        for="rolSeleccionar_{{ i }}"
+                                      ></label>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
               </div>
             </div>
