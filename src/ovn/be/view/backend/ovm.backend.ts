@@ -50,38 +50,61 @@ export class OVMBackend extends OVMBackendBase implements OnInit {
     this._constructor();
   }
 
-  ngOnInit() {
-    const nav = document.querySelector('.topbar>.navbar-nav');
-    const menuContainer = document.querySelector('bes-menu');
-    if (nav) {
-      const observer = new MutationObserver(() => {
+ ngOnInit() {
+  // Banderas para saber qué tareas ya se completaron
+  let menuModificado = false;
+  let footerEliminado = false;
+
+  // UN SOLO OBSERVADOR para controlar todas las modificaciones del DOM
+  const domObserver = new MutationObserver((mutations, observer) => {
+
+    // TAREA 1: Modificar el menú
+    if (!menuModificado) {
+      const nav = document.querySelector('.topbar>.navbar-nav');
+      const menuContainer = document.querySelector('bes-menu');
+
+      if (nav && menuContainer) {
+        console.log("Modificando menú...");
         const elementos = nav.querySelectorAll('li, a, button');
+        if (elementos.length > 3) {
           elementos[0].remove();
           elementos[3].remove();
-          observer.disconnect(); // corta la observación
+        }
+
         const spansEnMenu = menuContainer.querySelectorAll('span');
         if (spansEnMenu.length > 0) {
-          const spanParaEliminar = spansEnMenu[0];
-          //console.log('Eliminando solo el span con texto:', spanParaEliminar.textContent);
-          spanParaEliminar.remove();
-}
-      });
-      observer.observe(nav, { childList: true, subtree: true });
+          spansEnMenu[0].remove();
+        }
+
+        menuModificado = true; // Marcamos la tarea como completada
+      }
     }
 
-    const observer = new MutationObserver((mutations, obs) => {
-    const footerDiv = document.querySelector('div.footer');
-    if (footerDiv) {
-      footerDiv.remove(); // ...lo eliminamos.
+    // TAREA 2: Eliminar el footer
+    if (!footerEliminado) {
+      const footerDiv = document.querySelector('div.footer');
+      if (footerDiv) {
+        console.log("Eliminando footer...");
+        footerDiv.remove();
+        footerEliminado = true; // Marcamos la tarea como completada
+      }
+    }
+
+    // Si todas las tareas están completas, nos desconectamos.
+    if (menuModificado && footerEliminado) {
+      console.log("Todas las tareas del DOM completadas. Desconectando observador.");
+      observer.disconnect();
     }
   });
 
-  observer.observe(document.body, {
+  // Iniciamos la observación del cuerpo del documento
+  domObserver.observe(document.body, {
     childList: true,
     subtree: true
   });
-    this.validOnInit();
-  }
+
+  this.validOnInit();
+}
 
   // ngAfterViewInit se ejecuta una vez que la vista y sus hijos (incluido objNav) están inicializados.
   ngAfterViewInit() {
