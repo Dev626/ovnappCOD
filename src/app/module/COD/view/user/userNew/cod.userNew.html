@@ -44,7 +44,7 @@
       minlength="2"
       maxlength="100"
       required
-      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[cC][oO][mM]$"
+      pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
       [disabled]="flag_checked"
       email
     />
@@ -66,7 +66,7 @@
     El correo es obligatorio.
   </div>
   <div *ngIf="inp_id.errors?.['pattern']">
-    El formato del correo no es válido. Debe ser un correo <strong>.com</strong>.
+    El formato del correo no es válido. Debe ser un correo <strong> con cualquier extensión válida</strong>.
   </div>
 </div>
             <div
